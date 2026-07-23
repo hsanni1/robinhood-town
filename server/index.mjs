@@ -212,6 +212,6 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`API on http://localhost:${PORT} - suggestions:${items.length} scores:${scores.length} profiles:${profiles.length}`);
-  console.log(`Admin: GET /api/profiles?key=${ADMIN_KEY}`);
+  console.log("Admin: GET /api/profiles?key=<ADMIN_KEY>  (key from env, never logged)");
   if (ADMIN_KEY === "dev-admin-key") console.log("WARNING: using default ADMIN_KEY. Set ADMIN_KEY env var before deploying.");
 });
