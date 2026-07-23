@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Robinhood Town - Admin</title>
+    <style>
+      :root { --ink:#0b0b0b; --green:#00c805; --paper:#fff9ec; --red:#ff3b30; }
+      * { box-sizing: border-box; }
+      body { margin:0; background:var(--paper); color:var(--ink);
+        font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif; padding:20px; }
+      h1 { font-size:22px; text-transform:uppercase; margin:0 0 4px; }
+      h2 { font-size:15px; text-transform:uppercase; margin:0; }
+      .muted { color:#555; font-size:13px; }
+      .bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:14px 0 20px; }
+      input { font:inherit; padding:9px 11px; border:2px solid var(--ink); border-radius:8px; min-width:240px; background:#fff; }
+      button { font:inherit; font-weight:700; padding:9px 14px; border:2px solid var(--ink);
+        border-radius:8px; background:#fff; box-shadow:3px 3px 0 0 var(--ink); cursor:pointer; }
+      button:active { transform:translate(3px,3px); box-shadow:none; }
+      button.primary { background:var(--green); }
+      .card { border:3px solid var(--ink); border-radius:12px; background:#fff;
+        box-shadow:5px 5px 0 0 var(--ink); padding:14px; margin-bottom:20px; overflow:hidden; }
+      .card-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+      .tablewrap { overflow-x:auto; }
+      table { border-collapse:collapse; width:100%; font-size:13px; }
+      th, td { border:1px solid #ddd; padding:6px 9px; text-align:left; white-space:nowrap; }
+      th { background:#f2efe4; text-transform:uppercase; font-size:11px; }
+      tr:nth-child(even) td { background:#faf8f0; }
+      code { background:#f2efe4; padding:1px 5px; border-radius:4px; }
+      .status { font-size:13px; }
+      .err { color:var(--red); font-weight:700; }
+      .mono { font-family: ui-monospace, monospace; }
+    </style>
+  </head>
+  <body>
+    <h1>Robinhood Town Admin</h1>
+    <p class="muted">Enter your admin key to load collected data. Nothing loads without a valid key.</p>
+
+    <div class="bar">
+      <input id="key" type="password" placeholder="Admin key" autocomplete="off" />
+      <button class="primary" id="load">Load</button>
+      <button id="refresh">Refresh</button>
+      <span class="status" id="status"></span>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Profiles <span class="muted" id="pc"></span></h2>
+        <button data-csv="profiles">Download CSV</button>
+      </div>
+      <div class="tablewrap"><table id="profiles"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Leaderboard <span class="muted" id="sc"></span></h2>
+        <button data-csv="scores">Download CSV</button>
+      </div>
+      <div class="tablewrap"><table id="scores"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Suggestions <span class="muted" id="gc"></span></h2>
+        <button data-csv="suggestions">Download CSV</button>
+      </div>
+      <div class="tablewrap"><table id="suggestions"></table></div>
+    </div>
+
+    <script>
+      const API = "/api";
+      const $ = (id) => document.getElementById(id);
+      const data = { profiles: [], scores: [], suggestions: [] };
+      const COLS = {
+        profiles: ["username", "x", "wallet", "cid", "createdAt", "updatedAt"],
+        scores: ["name", "score", "ts"],
+        suggestions: ["name", "text", "ts"],
+      };
+      const DATE_COLS = new Set(["createdAt", "updatedAt", "ts"]);
+
+      $("key").value = sessionStorage.getItem("rht-admin-key") || "";
+
+      function fmt(col, v) {
+        if (v == null) return "";
+        if (DATE_COLS.has(col) && typeof v === "number") return new Date(v).toLocaleString();
+        return String(v);
+      }
+
+      function render(name) {
+        const rows = data[name];
+        const cols = COLS[name];
+        const t = $(name);
+        let html = "<tr>" + cols.map((c) => `<th>${c}</th>`).join("") + "</tr>";
+        for (const r of rows) {
+          html += "<tr>" + cols.map((c) => `<td>${escapeHtml(fmt(c, r[c]))}</td>`).join("") + "</tr>";
+        }
+        t.innerHTML = html;
+      }
+
+      function escapeHtml(s) {
+        return s.replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+      }
+
+      function toCsv(name) {
+        const cols = COLS[name];
+        const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+        const lines = [cols.join(",")];
+        for (const r of data[name]) lines.push(cols.map((c) => esc(fmt(c, r[c]))).join(","));
+        return lines.join("\n");
+      }
+
+      function downloadCsv(name) {
+        const blob = new Blob([toCsv(name)], { type: "text/csv" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `rht-${name}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      async function load() {
+        const key = $("key").value.trim();
+        sessionStorage.setItem("rht-admin-key", key);
+        $("status").textContent = "Loading...";
+        $("status").className = "status";
+        try {
+          const pRes = await fetch(`${API}/profiles?key=${encodeURIComponent(key)}`);
+          if (pRes.status === 401) {
+            $("status").innerHTML = '<span class="err">Invalid admin key.</span>';
+            return;
+          }
+          const pJson = await pRes.json();
+          data.profiles = pJson.profiles || [];
+          data.scores = await (await fetch(`${API}/scores`)).json();
+          data.suggestions = await (await fetch(`${API}/suggestions`)).json();
+
+          render("profiles"); render("scores"); render("suggestions");
+          $("pc").textContent = `(${data.profiles.length})`;
+          $("sc").textContent = `(${data.scores.length})`;
+          $("gc").textContent = `(${data.suggestions.length})`;
+          $("status").textContent = "Loaded " + new Date().toLocaleTimeString();
+        } catch (e) {
+          $("status").innerHTML = '<span class="err">Failed to load: ' + escapeHtml(e.message) + "</span>";
+        }
+      }
+
+      $("load").onclick = load;
+      $("refresh").onclick = load;
+      $("key").addEventListener("keydown", (e) => e.key === "Enter" && load());
+      document.querySelectorAll("[data-csv]").forEach((b) => (b.onclick = () => downloadCsv(b.dataset.csv)));
+      if ($("key").value) load();
+    </script>
+  </body>
+</html>
