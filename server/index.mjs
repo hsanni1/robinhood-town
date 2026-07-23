@@ -11,6 +11,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DB_FILE = join(__dirname, "suggestions.json");
 const SCORE_FILE = join(__dirname, "scores.json");
 const PROFILE_FILE = join(__dirname, "profiles.json");
+const SECTION_FILE = join(__dirname, "sections.json");
+const SECTIONS = ["trending", "marketplace", "contacts", "runner", "quests", "leaderboard", "suggestions", "profile"];
 const PORT = process.env.PORT || 8787;
 const MAX_STORED = 500;
 const MAX_SCORES = 100;
@@ -62,6 +64,13 @@ const SCORE_SEED = [
 let items = loadDb();
 let scores = loadJson(SCORE_FILE, null) || (writeJson(SCORE_FILE, SCORE_SEED), [...SCORE_SEED]);
 let profiles = loadJson(PROFILE_FILE, []);
+
+// Section status: "open" or "maintenance" (shows as "coming soon" in the app).
+let sections = loadJson(SECTION_FILE, null);
+if (!sections) {
+  sections = Object.fromEntries(SECTIONS.map((s) => [s, "open"]));
+  writeJson(SECTION_FILE, sections);
+}
 
 function cleanHandle(v) {
   const t = clean(v, 40).replace(/^@/, "");
@@ -205,6 +214,37 @@ const server = http.createServer((req, res) => {
       return json(res, 401, { error: "unauthorized" });
     }
     return json(res, 200, { count: profiles.length, profiles });
+  }
+
+  // ---- section status: public GET, admin-key POST ----
+  if (url.pathname === "/api/sections" && req.method === "GET") {
+    return json(res, 200, sections);
+  }
+
+  if (url.pathname === "/api/sections" && req.method === "POST") {
+    if (url.searchParams.get("key") !== ADMIN_KEY) {
+      return json(res, 401, { error: "unauthorized" });
+    }
+    let raw = "";
+    req.on("data", (c) => {
+      raw += c;
+      if (raw.length > 512) req.destroy();
+    });
+    req.on("end", () => {
+      let body;
+      try {
+        body = JSON.parse(raw || "{}");
+      } catch {
+        return json(res, 400, { error: "invalid JSON" });
+      }
+      const section = String(body.section || "");
+      const status = body.status === "maintenance" ? "maintenance" : "open";
+      if (!SECTIONS.includes(section)) return json(res, 400, { error: "unknown section" });
+      sections[section] = status;
+      writeJson(SECTION_FILE, sections);
+      return json(res, 200, sections);
+    });
+    return;
   }
 
   json(res, 404, { error: "not found" });

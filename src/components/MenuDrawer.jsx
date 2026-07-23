@@ -11,7 +11,7 @@ const NAV = [
   { id: "profile", label: "Profile" },
 ];
 
-export default function MenuDrawer({ open, onClose, tab, onNavigate }) {
+export default function MenuDrawer({ open, onClose, tab, onNavigate, sections = {} }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => e.key === "Escape" && onClose();
@@ -31,16 +31,20 @@ export default function MenuDrawer({ open, onClose, tab, onNavigate }) {
         </div>
 
         <nav className="menu-nav" aria-label="Sections">
-          {NAV.map((n) => (
-            <button
-              key={n.id}
-              className={`menu-nav-item ${tab === n.id ? "is-active" : ""}`}
-              aria-current={tab === n.id ? "page" : undefined}
-              onClick={() => onNavigate(n.id)}
-            >
-              {n.label}
-            </button>
-          ))}
+          {NAV.map((n) => {
+            const maint = sections[n.id] === "maintenance";
+            return (
+              <button
+                key={n.id}
+                className={`menu-nav-item ${tab === n.id ? "is-active" : ""}`}
+                aria-current={tab === n.id ? "page" : undefined}
+                onClick={() => onNavigate(n.id)}
+              >
+                <span style={{ flex: 1, textAlign: "left" }}>{n.label}</span>
+                {maint && <span className="menu-soon">Soon</span>}
+              </button>
+            );
+          })}
         </nav>
       </aside>
     </>

@@ -16,6 +16,7 @@ dist-ssr
 server/profiles.json
 server/scores.json
 server/suggestions.json
+server/sections.json
 
 # Secrets
 .env

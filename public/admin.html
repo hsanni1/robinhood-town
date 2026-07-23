@@ -31,6 +31,14 @@
       .status { font-size:13px; }
       .err { color:var(--red); font-weight:700; }
       .mono { font-family: ui-monospace, monospace; }
+      .srow { display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #eee; flex-wrap:wrap; }
+      .srow:last-child { border-bottom:none; }
+      .sname { flex:1; font-weight:700; min-width:120px; }
+      .pill { font-size:11px; font-weight:700; text-transform:uppercase; padding:2px 8px; border:2px solid var(--ink); border-radius:999px; }
+      .pill.open { background:var(--green); }
+      .pill.maint { background:#ffd500; }
+      .seg button { padding:6px 10px; box-shadow:2px 2px 0 0 var(--ink); font-size:12px; }
+      .seg button.active { background:var(--ink); color:#fff; }
     </style>
   </head>
   <body>
@@ -42,6 +50,14 @@
       <button class="primary" id="load">Load</button>
       <button id="refresh">Refresh</button>
       <span class="status" id="status"></span>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Section access</h2>
+        <span class="muted">Set to Maintenance to show "Coming soon" in the app</span>
+      </div>
+      <div id="sections"></div>
     </div>
 
     <div class="card">
@@ -72,6 +88,11 @@
       const API = "/api";
       const $ = (id) => document.getElementById(id);
       const data = { profiles: [], scores: [], suggestions: [] };
+      const SECTION_LABELS = {
+        trending: "Town Hall", marketplace: "Marketplace", contacts: "Contacts",
+        runner: "Rug Runner", quests: "Quests", leaderboard: "Leaderboard",
+        suggestions: "Suggestions", profile: "Profile",
+      };
       const COLS = {
         profiles: ["username", "x", "wallet", "cid", "createdAt", "updatedAt"],
         scores: ["name", "score", "ts"],
@@ -119,6 +140,42 @@
         URL.revokeObjectURL(a.href);
       }
 
+      function renderSections(state) {
+        const key = $("key").value.trim();
+        const el = $("sections");
+        el.innerHTML = "";
+        for (const id of Object.keys(SECTION_LABELS)) {
+          const status = state[id] || "open";
+          const row = document.createElement("div");
+          row.className = "srow";
+          const maint = status === "maintenance";
+          row.innerHTML =
+            `<span class="sname">${SECTION_LABELS[id]}</span>` +
+            `<span class="pill ${maint ? "maint" : "open"}">${maint ? "Maintenance" : "Open"}</span>` +
+            `<span class="seg">` +
+            `<button data-sec="${id}" data-st="open" class="${maint ? "" : "active"}">Open</button>` +
+            `<button data-sec="${id}" data-st="maintenance" class="${maint ? "active" : ""}">Maintenance</button>` +
+            `</span>`;
+          el.appendChild(row);
+        }
+        el.querySelectorAll("button[data-sec]").forEach((b) => {
+          b.onclick = async () => {
+            try {
+              const res = await fetch(`${API}/sections?key=${encodeURIComponent(key)}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ section: b.dataset.sec, status: b.dataset.st }),
+              });
+              if (res.status === 401) { $("status").innerHTML = '<span class="err">Invalid admin key.</span>'; return; }
+              renderSections(await res.json());
+              $("status").textContent = "Updated " + new Date().toLocaleTimeString();
+            } catch (e) {
+              $("status").innerHTML = '<span class="err">Failed: ' + escapeHtml(e.message) + "</span>";
+            }
+          };
+        });
+      }
+
       async function load() {
         const key = $("key").value.trim();
         sessionStorage.setItem("rht-admin-key", key);
@@ -134,6 +191,7 @@
           data.profiles = pJson.profiles || [];
           data.scores = await (await fetch(`${API}/scores`)).json();
           data.suggestions = await (await fetch(`${API}/suggestions`)).json();
+          renderSections(await (await fetch(`${API}/sections`)).json());
 
           render("profiles"); render("scores"); render("suggestions");
           $("pc").textContent = `(${data.profiles.length})`;

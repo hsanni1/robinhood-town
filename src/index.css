@@ -673,6 +673,18 @@ button {
   color: var(--ink);
 }
 
+.menu-soon {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--yellow);
+  color: var(--ink);
+}
+
 .drawer-subhead {
   display: flex;
   justify-content: space-between;
