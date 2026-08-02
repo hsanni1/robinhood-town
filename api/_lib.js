@@ -61,7 +61,7 @@ export function cleanWallet(v) {
 
 export function cors(res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
@@ -99,6 +99,12 @@ export function body(req) {
  * Unset in production means locked, not open - the dev default only applies
  * outside production so `vercel dev` keeps working.
  */
+/** Reads a single query param, tolerating the repeated-key array form. */
+export function param(req, name) {
+  const v = req.query?.[name];
+  return Array.isArray(v) ? v[0] : v;
+}
+
 export function adminOk(req) {
   const expected = process.env.ADMIN_KEY || (process.env.VERCEL_ENV === "production" ? "" : "dev-admin-key");
   if (!expected) return false;
