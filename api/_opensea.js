@@ -78,6 +78,23 @@ export async function fetchCollections(limit = 100) {
  * change24h = null, later reads compare against a genuinely ~24h-old value.
  * Null means "not known yet", and the UI shows a dash for it.
  */
+/**
+ * Name, artwork and canonical URL for a collection. Cached far longer than
+ * stats because it barely changes, which keeps the per-slug cost at roughly
+ * one upstream call once warm.
+ */
+export async function fetchMeta(slug) {
+  const { value } = await cached(`rht:os:meta:${slug}`, 21600, async () => {
+    const c = await osFetch(`/collections/${encodeURIComponent(slug)}`);
+    return {
+      name: c.name || slug,
+      img: c.image_url || "",
+      url: c.opensea_url || `https://opensea.io/collection/${slug}`,
+    };
+  });
+  return value;
+}
+
 export async function fetchStats(slug) {
   const { value, cached: wasCached } = await cached(`rht:os:stats:${slug}`, 300, async () => {
     const data = await osFetch(`/collections/${encodeURIComponent(slug)}/stats`);
@@ -95,8 +112,10 @@ export async function fetchStats(slug) {
     };
   });
 
+  // Artwork/link failures must not sink the numbers, which are the point.
+  const meta = await fetchMeta(slug).catch(() => null);
   const change24h = await floorChange(slug, value.floor, wasCached);
-  return { ...value, change24h };
+  return { ...value, ...(meta || {}), change24h };
 }
 
 async function floorChange(slug, floor, wasCached) {

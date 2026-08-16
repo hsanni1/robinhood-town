@@ -173,6 +173,30 @@ button {
   background: var(--surface);
 }
 
+/* Theme toggle wears the badge look but is a real button, so it needs the
+   button reset plus visible press/focus feedback. */
+.theme-toggle {
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.theme-toggle:hover {
+  box-shadow: var(--shadow-sm);
+  transform: translate(-1px, -1px);
+}
+
+.theme-toggle:active {
+  box-shadow: none;
+  transform: translate(0, 0);
+}
+
+.theme-toggle:focus-visible {
+  outline: 3px solid var(--rh-green);
+  outline-offset: 2px;
+}
+
 .nb-badge-green {
   background: var(--rh-green);
   color: var(--ink);

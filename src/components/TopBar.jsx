@@ -1,7 +1,7 @@
 import { Moon, Sun } from "lucide-react";
 import { useGame } from "../state/GameContext.jsx";
 
-export default function TopBar({ night, onOpenMenu, menuOpen }) {
+export default function TopBar({ night, onToggleTheme, themeManual, onOpenMenu, menuOpen }) {
   const { coins, level, xpIntoLevel } = useGame();
   const now = new Date();
   const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -45,9 +45,21 @@ export default function TopBar({ night, onOpenMenu, menuOpen }) {
         </div>
       </div>
 
-      <span className="nb-badge mono" title="Local time - theme follows your clock" style={{ padding: "4px 10px" }}>
-        {night ? <Moon size={13} strokeWidth={2.25} aria-label="Night" /> : <Sun size={13} strokeWidth={2.25} aria-label="Day" />} {timeStr}
-      </span>
+      <button
+        type="button"
+        className="nb-badge mono theme-toggle"
+        onClick={onToggleTheme}
+        aria-label={`Switch to ${night ? "light" : "dark"} mode`}
+        aria-pressed={night}
+        title={
+          themeManual
+            ? `${night ? "Dark" : "Light"} mode - click to switch`
+            : "Theme follows your clock - click to switch"
+        }
+        style={{ padding: "4px 10px", cursor: "pointer" }}
+      >
+        {night ? <Moon size={13} strokeWidth={2.25} aria-hidden="true" /> : <Sun size={13} strokeWidth={2.25} aria-hidden="true" />} {timeStr}
+      </button>
 
       <button
         className="nb-btn hamburger"

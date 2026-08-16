@@ -5,6 +5,9 @@
 // The in-game economy itself is a sandboxed simulation, not real trading.
 
 const UNISWAP_SWAP = "https://app.uniswap.org/swap";
+// Uniswap's bare /swap route is the same page for every token, so it tells you
+// nothing about the one you clicked. Anything with a cgId gets its own page.
+const cg = (id) => `https://www.coingecko.com/en/coins/${id}`;
 
 export const TOKENS = {
   BTC: {
@@ -19,11 +22,17 @@ export const TOKENS = {
   },
   SOL: {
     symbol: "SOL", name: "Solana", color: "#9945ff", img: "/coin/sol.png",
-    base: 77, kind: "crypto", cgId: "solana", tradeUrl: UNISWAP_SWAP,
+    base: 77, kind: "crypto", cgId: "solana", tradeUrl: cg("solana"),
   },
   DOGE: {
     symbol: "DOGE", name: "Dogecoin", color: "#c2a633", img: "/coin/doge.png",
-    base: 0.072, kind: "meme", cgId: "dogecoin", tradeUrl: UNISWAP_SWAP,
+    base: 0.072, kind: "meme", cgId: "dogecoin", tradeUrl: cg("dogecoin"),
+  },
+  // Robinhood Markets itself, via its tokenized stock - so the town shows the
+  // price of the company it is named after.
+  HOOD: {
+    symbol: "HOODx", name: "Robinhood Markets", color: "#00C805", img: "/logo-icon.png",
+    base: 96, kind: "stock", cgId: "robinhood-xstock", tradeUrl: cg("robinhood-xstock"),
   },
   CASHCAT: {
     symbol: "CASHCAT", name: "Cash Cat", color: "#ffd500", img: "/coin/cashcat.jpg",
@@ -41,17 +50,22 @@ export const TOKENS = {
     symbol: "ARROW", name: "Arrow", color: "#111111", img: "/coin/arrow.png",
     base: 0.815, kind: "meme", tradeUrl: UNISWAP_SWAP,
   },
+  // Robinhood's Classic Stock Tokens are listed on CoinGecko, so these carry
+  // real prices instead of the simulated baseline.
   NVDA: {
     symbol: "NVDAx", name: "NVIDIA Stock Token", color: "#76b900", img: "/coin/nvda.png",
-    base: 205, kind: "stock", tradeUrl: UNISWAP_SWAP,
+    base: 205, kind: "stock", cgId: "nvidia-robinhood-tokenized-stock",
+    tradeUrl: cg("nvidia-robinhood-tokenized-stock"),
   },
   AAPL: {
     symbol: "AAPLx", name: "Apple Stock Token", color: "#ffffff", img: "/coin/aapl.png",
-    base: 327, kind: "stock", tradeUrl: UNISWAP_SWAP,
+    base: 327, kind: "stock", cgId: "apple-robinhood-tokenized-stock",
+    tradeUrl: cg("apple-robinhood-tokenized-stock"),
   },
   TSLA: {
     symbol: "TSLAx", name: "Tesla Stock Token", color: "#e82127", img: "/coin/tsla.png",
-    base: 377, kind: "stock", tradeUrl: UNISWAP_SWAP,
+    base: 377, kind: "stock", cgId: "tesla-robinhood-tokenized-stock",
+    tradeUrl: cg("tesla-robinhood-tokenized-stock"),
   },
 };
 

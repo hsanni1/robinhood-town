@@ -26,7 +26,7 @@ const LABELS = {
 
 function GameShell() {
   const { confettiRef } = useGame();
-  const { night } = useDayNight();
+  const { night, toggle: toggleTheme, manual: themeManual } = useDayNight();
   const { profile, save } = useProfile();
   const sections = useSections();
   const [tab, setTab] = useState("trending"); // trending = home
@@ -53,7 +53,13 @@ function GameShell() {
 
   return (
     <div className="app-shell">
-      <TopBar night={night} onOpenMenu={() => setMenuOpen(true)} menuOpen={menuOpen} />
+      <TopBar
+        night={night}
+        onToggleTheme={toggleTheme}
+        themeManual={themeManual}
+        onOpenMenu={() => setMenuOpen(true)}
+        menuOpen={menuOpen}
+      />
       <MarketEventBanner />
       <div className="app-main">{renderTab()}</div>
       <Confetti ref={confettiRef} />

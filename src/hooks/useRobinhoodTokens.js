@@ -40,7 +40,11 @@ export function useRobinhoodTokens() {
             img: row.image,
             series: (row.sparkline_in_7d?.price ?? []).slice(-48),
             hue: hashHue(row.symbol || row.name || ""),
-            tradeUrl: "https://app.uniswap.org/swap",
+            // Per-token page. Uniswap's bare /swap route is identical for every
+            // token, so it told you nothing about the row you clicked.
+            tradeUrl: row.id
+              ? `https://www.coingecko.com/en/coins/${row.id}`
+              : "https://app.uniswap.org/swap",
           }))
           .filter((c) => c.symbol && c.price > 0);
         setCoins(mapped);

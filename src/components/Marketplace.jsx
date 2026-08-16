@@ -89,7 +89,7 @@ export default function Marketplace() {
                 </a>
               ))
             : pageItems.map((t) => (
-                <a key={t.key} href={t.tradeUrl} target="_blank" rel="noopener noreferrer" className="mkt-card" title={`Trade ${t.symbol} on Uniswap`}>
+                <a key={t.key} href={t.tradeUrl} target="_blank" rel="noopener noreferrer" className="mkt-card" title={`View ${t.symbol} market data`}>
                   <div className="mkt-thumb" style={{ background: t.color }}>
                     <img src={t.img} alt={t.name} loading="lazy" style={{ objectFit: "contain", padding: "18%" }} />
                   </div>

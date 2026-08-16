@@ -80,8 +80,18 @@ export default function TrendingTicker() {
   const rhTokens = useRobinhoodTokens();
   // Live OpenSea collections when a key is configured, else the bundled pool.
   const { pool: nftPool } = useNftPool(NFT_POOL);
-  const revealedSlugs = useMemo(() => nftPool.map((c) => c.slug), [nftPool]);
-  const nftStats = useNftStats(revealedSlugs);
+  // Curated collections are real collections, so they get real stats first -
+  // they are what's actually on screen before the reveal timer surfaces any
+  // pool entries. Pool slugs fill whatever budget is left.
+  const statSlugs = useMemo(
+    () => [
+      ...NFT_VIRAL.map((n) => n.slug),
+      ...NFT_UPCOMING_MINTS.map((n) => n.slug),
+      ...nftPool.map((c) => c.slug),
+    ],
+    [nftPool]
+  );
+  const nftStats = useNftStats(statSlugs);
   const { viral: viralNfts, upcoming } = useLaunchFeed(NFT_VIRAL, NFT_UPCOMING_MINTS, nftPool, nftStats);
 
   const symbols = Object.keys(market.tokens);
@@ -155,7 +165,7 @@ export default function TrendingTicker() {
             {moversPg.paginate(movers).map((r) => {
               const up = r.change24h >= 0;
               return (
-                <a key={r.key} href={r.token.tradeUrl} target="_blank" rel="noopener noreferrer" className="asset-row" title={`Trade ${r.token.symbol} on Uniswap`}>
+                <a key={r.key} href={r.token.tradeUrl} target="_blank" rel="noopener noreferrer" className="asset-row" title={`View ${r.token.symbol} market data`}>
                   <AssetIcon img={r.token.img} alt={r.token.name} color={r.token.color} />
                   <div style={{ width: 66 }}>
                     <div style={{ fontFamily: "var(--font-display)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
@@ -182,7 +192,7 @@ export default function TrendingTicker() {
           <h3 style={{ fontSize: 12.5, margin: "16px 0 8px" }}>Gaining the Most Volume</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {byVolume.map((r, rank) => (
-              <a key={r.key} href={r.token.tradeUrl} target="_blank" rel="noopener noreferrer" className="asset-row" title={`Trade ${r.token.symbol} on Uniswap`}>
+              <a key={r.key} href={r.token.tradeUrl} target="_blank" rel="noopener noreferrer" className="asset-row" title={`View ${r.token.symbol} market data`}>
                 <span className="mono dim" style={{ width: 16, fontSize: 12 }}>#{rank + 1}</span>
                 <AssetIcon img={r.token.img} alt={r.token.name} color={r.token.color} size={28} />
                 <div style={{ flex: 1, fontFamily: "var(--font-display)", fontSize: 12 }}>{r.token.symbol}</div>
