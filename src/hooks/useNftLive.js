@@ -43,13 +43,12 @@ export function useNftPool(fallback) {
   return { pool, live };
 }
 
-const EMPTY_PULSE = { gainers: [], minting: [] };
+const EMPTY_PULSE = { gainers: [] };
 
 /**
  * Chain pulse: collections whose 24h volume has jumped well above their own
- * recent average, and collections still in active distribution (a live mint).
- * The scan and the thresholds live server-side; this just polls the result.
- * Both come from one request because the server derives them from one scan.
+ * recent average. The scan and the thresholds live server-side; this just
+ * polls the result.
  */
 export function useNftPulse(watchSlugs = []) {
   const [pulse, setPulse] = useState(EMPTY_PULSE);
@@ -66,10 +65,7 @@ export function useNftPulse(watchSlugs = []) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (cancelled) return;
-        setPulse({
-          gainers: Array.isArray(data.gainers) ? data.gainers : [],
-          minting: Array.isArray(data.minting) ? data.minting : [],
-        });
+        setPulse({ gainers: Array.isArray(data.gainers) ? data.gainers : [] });
       } catch {
         /* keep last good lists */
       }

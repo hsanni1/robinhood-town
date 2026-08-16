@@ -43,7 +43,6 @@ const MOVERS_PER_PAGE = 10;
 const VIRAL_PER_PAGE = 6;
 const MINTS_PER_PAGE = 6;
 const GAINERS_PER_PAGE = 6;
-const MINTING_PER_PAGE = 6;
 
 // Merge live CoinGecko data (when present) over the simulated feed.
 function useAssetView() {
@@ -100,7 +99,7 @@ export default function TrendingTicker() {
     [nftPool]
   );
   const nftStats = useNftStats(statSlugs);
-  const { gainers, minting } = useNftPulse(statSlugs);
+  const { gainers } = useNftPulse(statSlugs);
   const { viral: viralNfts, upcoming } = useLaunchFeed(NFT_VIRAL, NFT_UPCOMING_MINTS, nftPool, nftStats);
 
   const symbols = Object.keys(market.tokens);
@@ -136,7 +135,6 @@ export default function TrendingTicker() {
   const viralPg = usePagination(viralNfts.length, VIRAL_PER_PAGE);
   const mintsPg = usePagination(upcoming.length, MINTS_PER_PAGE);
   const gainersPg = usePagination(gainers.length, GAINERS_PER_PAGE);
-  const mintingPg = usePagination(minting.length, MINTING_PER_PAGE);
 
   useEffect(() => {
     progressQuest("scout", 1);
@@ -217,48 +215,6 @@ export default function TrendingTicker() {
 
       {/* RIGHT: Upcoming Mints (top) + Viral NFTs */}
       <div className="trending-col">
-        {/* Live mints on the Robinhood chain. Hidden when nothing is minting -
-            a padded "minting now" list would be inventing a drop. */}
-        {minting.length > 0 && (
-          <div className="nb-card" style={{ padding: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <h2 style={{ fontSize: 16, marginBottom: 4 }}>Minting Now</h2>
-              <span className="nb-badge nb-badge-green" style={{ fontSize: 10 }}>
-                <span className="live-dot" aria-hidden="true" /> {minting.length} LIVE
-              </span>
-            </div>
-            <p className="dim" style={{ fontSize: 12, marginBottom: 10 }}>
-              Robinhood-chain collections still minting out right now
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {mintingPg.paginate(minting).map((m) => (
-                <a
-                  key={m.slug}
-                  href={m.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="nb-panel asset-row"
-                  style={{ padding: "8px 12px" }}
-                  title={`${m.name} - ${m.sales24h} of ${m.sales} lifetime sales happened in the last 24h`}
-                >
-                  <AssetIcon img={m.img} alt={m.name} size={34} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.name}</div>
-                    <div className="dim" style={{ fontSize: 11 }}>
-                      {m.sales24h} sales today{m.owners ? ` · ${m.owners.toLocaleString()} holders` : ""}
-                    </div>
-                  </div>
-                  <span className="mono" style={{ fontSize: 11, whiteSpace: "nowrap", textAlign: "right" }}>
-                    {fmtFloor(m)}
-                  </span>
-                  <span className="row-go dim">↗</span>
-                </a>
-              ))}
-            </div>
-            <Pagination page={mintingPg.page} totalPages={mintingPg.totalPages} onPageChange={mintingPg.setPage} label="Minting now pagination" />
-          </div>
-        )}
-
         {/* Only rendered when something is genuinely spiking - an empty
             "gaining volume" list is more honest than a padded one. */}
         {gainers.length > 0 && (
