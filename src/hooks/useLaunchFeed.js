@@ -97,12 +97,20 @@ export function buildFeed(baseViral, baseUpcoming, pool, revealCount, start, sta
     .map((n) => withStats(n, stats))
     .sort((a, b) => b.live - a.live || b.floor - a.floor || b.volume - a.volume);
 
-  // Upcoming: unified, sorted by soonest mint (revealed imminents lead).
+  // Upcoming: dated mints first (soonest lead), then projects that have
+  // announced Robinhood but no date yet, liveliest first so the ones already
+  // trading on OpenSea surface above the ones with nothing to show.
   // Mint dates are game flavor - OpenSea publishes none - but floor, image and
   // link are overlaid for real where the collection already trades.
   const upcoming = [...baseUpcoming, ...newUpcoming]
     .map((n) => ({ ...withStats(n, stats), mintAt: start + n.mintInHours * HOUR }))
-    .sort((a, b) => a.mintAt - b.mintAt);
+    .sort((a, b) => {
+      const at = a.tba ? 1 : 0;
+      const bt = b.tba ? 1 : 0;
+      if (at !== bt) return at - bt;
+      if (at) return (b.floor || 0) - (a.floor || 0) || a.name.localeCompare(b.name);
+      return a.mintAt - b.mintAt;
+    });
 
   return { viral, upcoming };
 }

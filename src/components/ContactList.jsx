@@ -62,11 +62,14 @@ export default function ContactList() {
                     <a className="nb-btn nb-btn-block contact-link" href={`https://x.com/${m.x}`} target="_blank" rel="noopener noreferrer">
                       X / Twitter · @{m.x}
                     </a>
-                    <a className="nb-btn nb-btn-block contact-link" href={`https://discord.gg/${m.discord}`} target="_blank" rel="noopener noreferrer">
-                      Discord · discord.gg/{m.discord}
-                    </a>
+                    {/* Not every project publishes a Discord - link only what exists. */}
+                    {m.discord && (
+                      <a className="nb-btn nb-btn-block contact-link" href={`https://discord.gg/${m.discord}`} target="_blank" rel="noopener noreferrer">
+                        Discord · discord.gg/{m.discord}
+                      </a>
+                    )}
                     <a className="nb-btn nb-btn-block contact-link" href={c.url} target="_blank" rel="noopener noreferrer">
-                      View collection on OpenSea
+                      {c.url.includes("opensea.io") ? "View collection on OpenSea" : "Visit project"}
                     </a>
                   </div>
                 </div>

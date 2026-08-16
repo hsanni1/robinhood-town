@@ -218,11 +218,19 @@ export default function TrendingTicker() {
                     {n.name}
                     {n.isNew && <span className="tag-new">NEW</span>}
                   </div>
-                  <div className="dim" style={{ fontSize: 11 }}>{fmtCountdown(n.mintAt)} · {n.supply.toLocaleString()} supply</div>
+                  <div className="dim" style={{ fontSize: 11 }}>
+                    {/* Announced-but-unrevealed drops have no date or supply to show. */}
+                    {n.tba ? "Mint date TBA" : fmtCountdown(n.mintAt)}
+                    {n.supply != null && ` · ${n.supply.toLocaleString()} supply`}
+                  </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <div className="mono" style={{ fontSize: 12 }}>{n.price}</div>
-                  <span className="nb-badge nb-badge-green" style={{ fontSize: 9, marginTop: 2 }}>{HYPE_LABEL[n.hype]}</span>
+                  {/* Only badge hype we actually know - an unannounced project
+                      should not be labelled "Hot" on our say-so. */}
+                  {HYPE_LABEL[n.hype] && (
+                    <span className="nb-badge nb-badge-green" style={{ fontSize: 9, marginTop: 2 }}>{HYPE_LABEL[n.hype]}</span>
+                  )}
                 </div>
                 <span className="row-go dim" style={{ display: "inline-flex" }}><ArrowUpRight size={13} strokeWidth={2.5} aria-hidden="true" /></span>
               </a>

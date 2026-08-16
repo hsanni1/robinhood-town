@@ -95,8 +95,19 @@ export async function fetchMeta(slug) {
   return value;
 }
 
+/**
+ * Spread expiries over 5-10 minutes instead of a single instant. With ~60
+ * tracked collections a fixed TTL means they all go stale together and the
+ * next request fires 60 upstream calls at once.
+ */
+function jitteredTtl(slug, base) {
+  let h = 0;
+  for (const ch of slug) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return base + (h % base);
+}
+
 export async function fetchStats(slug) {
-  const { value, cached: wasCached } = await cached(`rht:os:stats:${slug}`, 300, async () => {
+  const { value, cached: wasCached } = await cached(`rht:os:stats:${slug}`, jitteredTtl(slug, 300), async () => {
     const data = await osFetch(`/collections/${encodeURIComponent(slug)}/stats`);
     const total = data.total || {};
     const day = (data.intervals || []).find((i) => i.interval === "one_day") || {};

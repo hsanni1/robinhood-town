@@ -3,7 +3,7 @@ import { json, param, preflight } from "../_lib.js";
 
 // Every displayed collection needs stats, so this has to cover the curated
 // viral + upcoming lists plus whatever the reveal has surfaced.
-const MAX_SLUGS = 40;
+const MAX_SLUGS = 70;
 // OpenSea's limit is ~120/window and each slug costs up to two calls, so fan
 // out in bounded waves rather than firing 80 requests at once.
 const CONCURRENCY = 6;

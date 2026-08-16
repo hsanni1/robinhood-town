@@ -4,7 +4,7 @@ const API = import.meta.env.VITE_SUGGESTIONS_API ?? "/api";
 const POOL_REFRESH_MS = 10 * 60 * 1000;
 const STATS_REFRESH_MS = 5 * 60 * 1000;
 // Must not exceed MAX_SLUGS in api/nft/stats.js.
-const STATS_BATCH = 40;
+const STATS_BATCH = 70;
 
 /**
  * Live collection list from OpenSea via our proxy, falling back to the bundled
