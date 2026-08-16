@@ -1,15 +1,31 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useGame } from "../state/GameContext.jsx";
 import { NFT_VIRAL, NFT_UPCOMING_MINTS } from "../data/assets.js";
 import { NFT_POOL } from "../data/nftPool.js";
 import { usePagination } from "../hooks/usePagination.js";
 import { useRobinhoodTokens } from "../hooks/useRobinhoodTokens.js";
 import { useLaunchFeed } from "../hooks/useLaunchFeed.js";
+import { useNftPool, useNftStats } from "../hooks/useNftLive.js";
 import PriceChart from "./PriceChart.jsx";
 import AssetIcon from "./AssetIcon.jsx";
 import Pagination from "./Pagination.jsx";
 
 const HYPE_LABEL = { hot: "Hot", raffle: "Raffle", allowlist: "Allowlist" };
+
+// Simulated rows carry an invented "$NNm" volume; live rows carry real OpenSea
+// volume denominated in the collection's own currency (not always ETH on this
+// chain), so the two format differently.
+function fmtVolume(n) {
+  if (!n.live) return `$${n.volume.toFixed(0)}M`;
+  if (!n.volume) return "-";
+  return `${n.volume < 1 ? n.volume.toFixed(3) : n.volume.toFixed(1)} ${n.floorSymbol || "ETH"}`;
+}
+
+function fmtFloor(n) {
+  const sym = n.floorSymbol || "ETH";
+  if (!n.floor) return "-"; // live collection with no active listings
+  return `${n.floor < 1 ? n.floor.toFixed(4) : n.floor.toFixed(2)} ${sym}`;
+}
 
 const MOVERS_PER_PAGE = 10;
 const VIRAL_PER_PAGE = 6;
@@ -56,7 +72,11 @@ export default function TrendingTicker() {
   const { market, progressQuest } = useGame();
   const view = useAssetView();
   const rhTokens = useRobinhoodTokens();
-  const { viral: viralNfts, upcoming } = useLaunchFeed(NFT_VIRAL, NFT_UPCOMING_MINTS, NFT_POOL);
+  // Live OpenSea collections when a key is configured, else the bundled pool.
+  const { pool: nftPool } = useNftPool(NFT_POOL);
+  const revealedSlugs = useMemo(() => nftPool.map((c) => c.slug), [nftPool]);
+  const nftStats = useNftStats(revealedSlugs);
+  const { viral: viralNfts, upcoming } = useLaunchFeed(NFT_VIRAL, NFT_UPCOMING_MINTS, nftPool, nftStats);
 
   const symbols = Object.keys(market.tokens);
   // Dedupe set: bare letters, plus the de-suffixed form of stock tokens (NVDAx -> NVDA).
@@ -84,6 +104,8 @@ export default function TrendingTicker() {
   const movers = [...baseRows, ...rhRows].sort((a, b) => b.change24h - a.change24h);
   const byVolume = [...movers].sort((a, b) => b.volume - a.volume).slice(0, 5);
   const liveCount = movers.filter((r) => r.live).length;
+
+  const liveNftCount = viralNfts.filter((n) => n.live).length;
 
   const moversPg = usePagination(movers.length, MOVERS_PER_PAGE);
   const viralPg = usePagination(viralNfts.length, VIRAL_PER_PAGE);
@@ -194,11 +216,17 @@ export default function TrendingTicker() {
         </div>
 
         <div className="nb-card" style={{ padding: 14 }}>
-          <h2 style={{ fontSize: 16, marginBottom: 4 }}>Viral NFTs</h2>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <h2 style={{ fontSize: 16, marginBottom: 4 }}>Viral NFTs</h2>
+            <span className={`nb-badge ${liveNftCount ? "nb-badge-green" : ""}`} style={{ fontSize: 10 }}>
+              {liveNftCount ? `\u{1F7E2} ${liveNftCount} LIVE` : "\u{1F4A4} SIM"}
+            </span>
+          </div>
           <p className="dim" style={{ fontSize: 12, marginBottom: 10 }}>Auto-updating - fresh collections added as they pop off</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {viralPg.paginate(viralNfts).map((n) => {
-              const up = n.change >= 0;
+              const hasChange = typeof n.change === "number";
+              const up = hasChange && n.change >= 0;
               return (
                 <a key={n.slug} href={n.url} target="_blank" rel="noopener noreferrer" className="nb-panel asset-row" style={{ padding: "8px 12px" }} title={`View ${n.name} on OpenSea`}>
                   <AssetIcon img={n.img} alt={n.name} size={34} />
@@ -206,10 +234,10 @@ export default function TrendingTicker() {
                     {n.name}
                     {n.isNew && <span className="tag-new">NEW</span>}
                   </span>
-                  <span className="mono dim vol-cell" style={{ fontSize: 11 }}>${n.volume.toFixed(0)}M</span>
-                  <span className="mono dim" style={{ fontSize: 11 }}>{n.floor} ETH</span>
-                  <span className={`mono ${up ? "up" : "down"}`} style={{ fontSize: 12, width: 54, textAlign: "right" }}>
-                    {up ? "▲" : "▼"} {Math.abs(n.change).toFixed(1)}%
+                  <span className="mono dim vol-cell" style={{ fontSize: 11 }}>{fmtVolume(n)}</span>
+                  <span className="mono dim" style={{ fontSize: 11 }}>{fmtFloor(n)}</span>
+                  <span className={`mono ${hasChange ? (up ? "up" : "down") : "dim"}`} style={{ fontSize: 12, width: 54, textAlign: "right" }}>
+                    {hasChange ? `${up ? "▲" : "▼"} ${Math.abs(n.change).toFixed(1)}%` : "-"}
                   </span>
                   <span className="row-go dim">↗</span>
                 </a>

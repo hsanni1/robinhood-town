@@ -45,14 +45,20 @@ export async function readJson(key, fallback) {
   }
 }
 
-/** Write a JSON value. Resolves to false if the write did not stick. */
-export async function writeJson(key, value) {
+/**
+ * Write a JSON value. Resolves to false if the write did not stick.
+ * Pass `ttlSeconds` to have Redis expire the key - used for the OpenSea
+ * caches, which should go stale rather than serve month-old floor prices.
+ */
+export async function writeJson(key, value, ttlSeconds) {
   if (!hasRedis) {
     memory.set(key, value);
     return false;
   }
   try {
-    await command(["SET", key, JSON.stringify(value)]);
+    const args = ["SET", key, JSON.stringify(value)];
+    if (ttlSeconds > 0) args.push("EX", String(Math.floor(ttlSeconds)));
+    await command(args);
     return true;
   } catch (e) {
     console.error(`write ${key} failed:`, e.message);

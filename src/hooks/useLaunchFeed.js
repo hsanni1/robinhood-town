@@ -16,28 +16,45 @@ function seed(str) {
  * real collection from NFT_POOL and routes it into Viral (just went viral) or
  * Upcoming (about to launch), so both NFT sections auto-grow over time.
  *
- * OpenSea has no free browser-accessible live API (needs a key + backend), so
- * the pool is pre-scraped from the real Discover page and images are hotlinked
- * from OpenSea's CDN. Attributes are derived deterministically from each slug
- * so rows don't jump around between renders.
+ * The pool comes from OpenSea via our /api/nft proxy when a key is configured,
+ * otherwise from the pre-scraped bundled list; images are hotlinked from
+ * OpenSea's CDN either way.
+ *
+ * Trading attributes prefer real stats from `stats` (keyed by slug) and mark
+ * those rows `live`. Anything OpenSea does not publish - mint countdowns,
+ * supply, hype - stays derived deterministically from the slug, so rows don't
+ * jump around between renders.
  */
 // Pure transform (exported for tests): given how many pool items have been
 // revealed, route them into Viral / Upcoming and merge with the curated sets.
-export function buildFeed(baseViral, baseUpcoming, pool, revealCount, start) {
+export function buildFeed(baseViral, baseUpcoming, pool, revealCount, start, stats = {}) {
   const revealed = pool.slice(0, revealCount);
 
   const newViral = [];
   const newUpcoming = [];
   revealed.forEach((c, i) => {
     const r = seed(c.slug);
+    const real = stats[c.slug];
+    const hasFloor = real && typeof real.floor === "number";
     if (i % 2 === 0) {
       // just went viral
       newViral.push({
         ...c,
         isNew: true,
-        floor: +(0.003 + r * 0.05).toFixed(4),
-        change: +((r - 0.35) * 120).toFixed(1),
-        volume: +(4 + r * 45).toFixed(1),
+        live: Boolean(hasFloor),
+        floor: hasFloor ? real.floor : +(0.003 + r * 0.05).toFixed(4),
+        // Robinhood-chain collections are not all ETH-denominated - some price
+        // in USDG - so carry the symbol rather than assuming.
+        floorSymbol: (hasFloor && real.floorSymbol) || "ETH",
+        // A live row must not carry an invented change %. Real 24h change is
+        // null until the floor snapshot is 24h old, so show nothing until then;
+        // only fully simulated rows get the derived value.
+        change: hasFloor
+          ? (typeof real.change24h === "number" ? real.change24h : null)
+          : +((r - 0.35) * 120).toFixed(1),
+        volume: hasFloor && typeof real.volume === "number" ? real.volume : +(4 + r * 45).toFixed(1),
+        sales: real?.sales ?? null,
+        owners: real?.owners ?? null,
       });
     } else {
       // about to launch - imminent countdown so it leads the list
@@ -65,7 +82,7 @@ export function buildFeed(baseViral, baseUpcoming, pool, revealCount, start) {
   return { viral, upcoming };
 }
 
-export function useLaunchFeed(baseViral, baseUpcoming, pool) {
+export function useLaunchFeed(baseViral, baseUpcoming, pool, stats) {
   const startRef = useRef(Date.now());
   const [revealCount, setRevealCount] = useState(0);
 
@@ -77,7 +94,7 @@ export function useLaunchFeed(baseViral, baseUpcoming, pool) {
   }, [pool.length]);
 
   return useMemo(
-    () => buildFeed(baseViral, baseUpcoming, pool, revealCount, startRef.current),
-    [revealCount, pool, baseViral, baseUpcoming]
+    () => buildFeed(baseViral, baseUpcoming, pool, revealCount, startRef.current, stats),
+    [revealCount, pool, baseViral, baseUpcoming, stats]
   );
 }

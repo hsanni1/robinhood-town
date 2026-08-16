@@ -85,7 +85,7 @@ export default function Marketplace() {
                     <img src={n.img} alt={n.name} loading="lazy" />
                   </div>
                   <div className="mkt-name">{n.name}</div>
-                  <div className="mkt-meta">{n.floor != null ? `${n.floor} ETH floor` : n.price ? `${n.price} mint` : "OpenSea"}</div>
+                  <div className="mkt-meta">{n.floor != null ? `${n.floor} ${n.floorSymbol || "ETH"} floor` : n.price ? `${n.price} mint` : "OpenSea"}</div>
                 </a>
               ))
             : pageItems.map((t) => (
