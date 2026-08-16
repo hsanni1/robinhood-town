@@ -1,3 +1,4 @@
+import { Moon, Sun } from "lucide-react";
 import { useGame } from "../state/GameContext.jsx";
 
 export default function TopBar({ night, onOpenMenu, menuOpen }) {
@@ -45,7 +46,7 @@ export default function TopBar({ night, onOpenMenu, menuOpen }) {
       </div>
 
       <span className="nb-badge mono" title="Local time - theme follows your clock" style={{ padding: "4px 10px" }}>
-        {night ? "\u{1F319}" : "\u{2600}\u{FE0F}"} {timeStr}
+        {night ? <Moon size={13} strokeWidth={2.25} aria-label="Night" /> : <Sun size={13} strokeWidth={2.25} aria-label="Day" />} {timeStr}
       </span>
 
       <button

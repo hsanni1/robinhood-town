@@ -1,3 +1,4 @@
+import { Flame, TrendingUp } from "lucide-react";
 import { useGame } from "../state/GameContext.jsx";
 
 export default function MarketEventBanner() {
@@ -22,7 +23,9 @@ export default function MarketEventBanner() {
         animation: "pop-in 0.25s ease",
       }}
     >
-      <span style={{ fontSize: 22 }}>{bull ? "\u{1F402}" : "\u{1F4A5}"}</span>
+      <span style={{ display: "inline-flex" }} aria-hidden="true">
+        {bull ? <TrendingUp size={24} strokeWidth={2.5} /> : <Flame size={24} strokeWidth={2.5} />}
+      </span>
       <div style={{ flex: 1 }}>
         <strong style={{ fontFamily: "var(--font-display)", fontSize: 13 }}>
           {bull ? "BULL RUN ACTIVE" : "FLASH CRASH"}

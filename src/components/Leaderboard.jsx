@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Moon } from "lucide-react";
 
 const API = (import.meta.env.VITE_SUGGESTIONS_API ?? "/api") + "/scores";
 
@@ -41,11 +42,17 @@ export default function Leaderboard() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, gap: 8, flexWrap: "wrap" }}>
         <h2 style={{ fontSize: 16 }}>Leaderboard</h2>
         <span className={`nb-badge ${status === "live" ? "nb-badge-green" : ""}`} style={{ fontSize: 9 }}>
-          {status === "live" ? "\u{1F7E2} Live" : status === "offline" ? "\u{1F4A4} Offline" : "\u{2026} Loading"}
+          {status === "live" ? (
+            <><span className="live-dot" aria-hidden="true" /> Live</>
+          ) : status === "offline" ? (
+            <><Moon size={10} strokeWidth={2.5} aria-hidden="true" /> Offline</>
+          ) : (
+            "\u{2026} Loading"
+          )}
         </span>
       </div>
       <p className="dim" style={{ fontSize: 12, marginBottom: 12 }}>
-        Top Rug Runner scores. Your best {myBest}. Save a run to climb the ranks.
+        Top Rug Runner scores. Your best {myBest}. Finish a run to climb the ranks.
       </p>
 
       {scores.length === 0 ? (

@@ -852,6 +852,40 @@ button {
   text-align: center;
 }
 
+.runner-howto {
+  width: min(340px, calc(100% - 24px));
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.runner-howto ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.runner-howto li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+
+.runner-howto li > img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.runner-howto li > svg {
+  flex-shrink: 0;
+}
+
 .runner-lives {
   display: flex;
   gap: 5px;

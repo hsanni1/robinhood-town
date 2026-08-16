@@ -1,11 +1,32 @@
 import { useState } from "react";
+import { Lock } from "lucide-react";
 import { NFT_UPCOMING_MINTS } from "../data/assets.js";
 
 // Sort by soonest mint so the list mirrors the Upcoming feed order.
 const CONTACTS = [...NFT_UPCOMING_MINTS].sort((a, b) => a.mintInHours - b.mintInHours);
 
+// Collab manager contacts stay behind an auth wall so managers don't get
+// spammed with DMs. Flip this once real sign-in exists.
+const AUTH_READY = false;
+
+function AuthWall() {
+  return (
+    <div className="nb-card" style={{ padding: 28, textAlign: "center" }}>
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+        <Lock size={40} strokeWidth={2} aria-hidden="true" />
+      </div>
+      <h2 style={{ fontSize: 18 }}>Members Only</h2>
+      <p className="dim" style={{ fontSize: 13, marginTop: 6, maxWidth: 360, marginInline: "auto" }}>
+        Collab manager contacts are locked to verified members. Sign-in is coming soon — this keeps managers safe from spam DMs.
+      </p>
+    </div>
+  );
+}
+
 export default function ContactList() {
   const [open, setOpen] = useState(null);
+
+  if (!AUTH_READY) return <AuthWall />;
 
   return (
     <div className="nb-card" style={{ padding: 14 }}>

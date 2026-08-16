@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import { ArrowDown, ArrowUp, ArrowUpRight, Moon } from "lucide-react";
 import { useGame } from "../state/GameContext.jsx";
 import { NFT_VIRAL, NFT_UPCOMING_MINTS } from "../data/assets.js";
 import { NFT_POOL } from "../data/nftPool.js";
@@ -11,6 +12,11 @@ import AssetIcon from "./AssetIcon.jsx";
 import Pagination from "./Pagination.jsx";
 
 const HYPE_LABEL = { hot: "Hot", raffle: "Raffle", allowlist: "Allowlist" };
+
+function Delta({ up }) {
+  const Icon = up ? ArrowUp : ArrowDown;
+  return <Icon size={11} strokeWidth={2.75} style={{ verticalAlign: "-1px" }} aria-label={up ? "up" : "down"} />;
+}
 
 // Simulated rows carry an invented "$NNm" volume; live rows carry real OpenSea
 // volume denominated in the collection's own currency (not always ETH on this
@@ -126,7 +132,7 @@ export default function TrendingTicker() {
             <p className="dim" style={{ fontSize: 12 }}>Auto-updating - live Robinhood-Chain tokens added as they list</p>
           </div>
           <span className={`nb-badge ${liveCount ? "nb-badge-green" : ""}`} style={{ fontSize: 10 }}>
-            {liveCount ? `\u{1F7E2} ${liveCount} LIVE` : "\u{1F4A4} SIM"}
+            {liveCount ? <><span className="live-dot" aria-hidden="true" /> {liveCount} LIVE</> : <><Moon size={11} strokeWidth={2.5} aria-hidden="true" /> SIM</>}
           </span>
         </div>
 
@@ -137,7 +143,7 @@ export default function TrendingTicker() {
               return (
                 <span key={r.key + i} className="mono" style={{ fontSize: 13 }}>
                   {r.token.symbol}{" "}
-                  <span className={up ? "up" : "down"}>{up ? "▲" : "▼"} {Math.abs(r.change24h).toFixed(1)}%</span>
+                  <span className={up ? "up" : "down"}><Delta up={up} /> {Math.abs(r.change24h).toFixed(1)}%</span>
                 </span>
               );
             })}
@@ -163,9 +169,9 @@ export default function TrendingTicker() {
                     <PriceChart data={r.series} up={up} />
                   </div>
                   <div className={`mono ${up ? "up" : "down"}`} style={{ width: 60, textAlign: "right", fontSize: 12 }}>
-                    {up ? "▲" : "▼"} {Math.abs(r.change24h).toFixed(1)}%
+                    <Delta up={up} /> {Math.abs(r.change24h).toFixed(1)}%
                   </div>
-                  <span className="row-go dim">↗</span>
+                  <span className="row-go dim" style={{ display: "inline-flex" }}><ArrowUpRight size={13} strokeWidth={2.5} aria-hidden="true" /></span>
                 </a>
               );
             })}
@@ -181,7 +187,7 @@ export default function TrendingTicker() {
                 <AssetIcon img={r.token.img} alt={r.token.name} color={r.token.color} size={28} />
                 <div style={{ flex: 1, fontFamily: "var(--font-display)", fontSize: 12 }}>{r.token.symbol}</div>
                 <span className="mono" style={{ fontSize: 12 }}>{fmtVol(r.volume)} vol</span>
-                <span className="row-go dim">↗</span>
+                <span className="row-go dim" style={{ display: "inline-flex" }}><ArrowUpRight size={13} strokeWidth={2.5} aria-hidden="true" /></span>
               </a>
             ))}
           </div>
@@ -208,7 +214,7 @@ export default function TrendingTicker() {
                   <div className="mono" style={{ fontSize: 12 }}>{n.price}</div>
                   <span className="nb-badge nb-badge-green" style={{ fontSize: 9, marginTop: 2 }}>{HYPE_LABEL[n.hype]}</span>
                 </div>
-                <span className="row-go dim">↗</span>
+                <span className="row-go dim" style={{ display: "inline-flex" }}><ArrowUpRight size={13} strokeWidth={2.5} aria-hidden="true" /></span>
               </a>
             ))}
           </div>
@@ -219,7 +225,7 @@ export default function TrendingTicker() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <h2 style={{ fontSize: 16, marginBottom: 4 }}>Viral NFTs</h2>
             <span className={`nb-badge ${liveNftCount ? "nb-badge-green" : ""}`} style={{ fontSize: 10 }}>
-              {liveNftCount ? `\u{1F7E2} ${liveNftCount} LIVE` : "\u{1F4A4} SIM"}
+              {liveNftCount ? <><span className="live-dot" aria-hidden="true" /> {liveNftCount} LIVE</> : <><Moon size={11} strokeWidth={2.5} aria-hidden="true" /> SIM</>}
             </span>
           </div>
           <p className="dim" style={{ fontSize: 12, marginBottom: 10 }}>Auto-updating - fresh collections added as they pop off</p>
@@ -237,9 +243,9 @@ export default function TrendingTicker() {
                   <span className="mono dim vol-cell" style={{ fontSize: 11 }}>{fmtVolume(n)}</span>
                   <span className="mono dim" style={{ fontSize: 11 }}>{fmtFloor(n)}</span>
                   <span className={`mono ${hasChange ? (up ? "up" : "down") : "dim"}`} style={{ fontSize: 12, width: 54, textAlign: "right" }}>
-                    {hasChange ? `${up ? "▲" : "▼"} ${Math.abs(n.change).toFixed(1)}%` : "-"}
+                    {hasChange ? <><Delta up={up} /> {Math.abs(n.change).toFixed(1)}%</> : "-"}
                   </span>
-                  <span className="row-go dim">↗</span>
+                  <span className="row-go dim" style={{ display: "inline-flex" }}><ArrowUpRight size={13} strokeWidth={2.5} aria-hidden="true" /></span>
                 </a>
               );
             })}

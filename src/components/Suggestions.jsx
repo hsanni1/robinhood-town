@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Moon } from "lucide-react";
 
 // Shared backend (see server/index.mjs). Configurable so you can point at a
 // hosted API in production via VITE_SUGGESTIONS_API; defaults to the dev proxy.
@@ -96,7 +97,13 @@ export default function Suggestions({ username = "" }) {
   }
 
   const statusLabel =
-    status === "shared" ? "\u{1F7E2} Shared" : status === "offline" ? "\u{1F4A4} Offline (local)" : "\u{2026} Connecting";
+    status === "shared" ? (
+      <><span className="live-dot" aria-hidden="true" /> Shared</>
+    ) : status === "offline" ? (
+      <><Moon size={10} strokeWidth={2.5} aria-hidden="true" /> Offline (local)</>
+    ) : (
+      "\u{2026} Connecting"
+    );
 
   return (
     <div className="nb-card" style={{ padding: 0, display: "flex", flexDirection: "column", overflow: "hidden", maxHeight: "calc(100dvh - 160px)" }}>

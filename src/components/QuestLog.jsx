@@ -1,3 +1,4 @@
+import { Check, Coins } from "lucide-react";
 import { useGame } from "../state/GameContext.jsx";
 import { useStreak } from "../hooks/useStreak.js";
 
@@ -35,7 +36,7 @@ export default function QuestLog() {
               <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                 <strong style={{ fontSize: 13.5 }}>{q.title}</strong>
                 <span className="nb-badge nb-badge-green" style={{ fontSize: 11 }}>
-                  +{q.reward} {"\u{1FA99}"} / +{q.xp} XP
+                  +{q.reward} <Coins size={12} strokeWidth={2.5} aria-label="Robin Coins" /> / +{q.xp} XP
                 </span>
               </div>
               <p className="dim" style={{ fontSize: 12.5, margin: "4px 0 8px" }}>{q.detail}</p>
@@ -53,7 +54,11 @@ export default function QuestLog() {
                   Claim Reward
                 </button>
               )}
-              {q.claimed && <div className="mono dim" style={{ fontSize: 11, marginTop: 6 }}>{"\u{2713}"} Claimed</div>}
+              {q.claimed && (
+                <div className="mono dim" style={{ fontSize: 11, marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                  <Check size={12} strokeWidth={2.75} /> Claimed
+                </div>
+              )}
             </div>
           );
         })}

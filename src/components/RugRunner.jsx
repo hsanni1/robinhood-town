@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { MousePointerClick, ShieldCheck, Zap } from "lucide-react";
 import { useGame } from "../state/GameContext.jsx";
 import { playCue } from "../lib/cue.js";
 
@@ -48,7 +49,6 @@ export default function RugRunner() {
   const [lives, setLives] = useState(START_LIVES);
   const [best, setBest] = useState(loadBest);
   const [loseImg, setLoseImg] = useState(LOSE_IMAGES[0]);
-  const [saved, setSaved] = useState(false);
 
   function newEngine() {
     return {
@@ -71,7 +71,6 @@ export default function RugRunner() {
     eng.current = newEngine();
     setScore(0);
     setLives(START_LIVES);
-    setSaved(false);
     setPhase("playing");
   }
 
@@ -89,15 +88,8 @@ export default function RugRunner() {
   function endGame() {
     setPhase("over");
     setLoseImg(LOSE_IMAGES[(Math.random() * LOSE_IMAGES.length) | 0]);
-  }
-
-  function tryAgain() {
-    playCue("toggle");
-    start();
-  }
-
-  function saveScore() {
     playCue("error");
+
     const s = Math.floor(eng.current?.score ?? score);
     const reward = Math.round(s / 4);
     if (reward > 0) addCoins(reward);
@@ -127,9 +119,15 @@ export default function RugRunner() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, score: s }),
     }).catch(() => {});
-    fireConfetti();
-    pushToast({ kind: "win", text: reward > 0 ? `Saved! +${reward} Robin Coins` : "Score saved" });
-    setSaved(true);
+    if (reward > 0) {
+      fireConfetti();
+      pushToast({ kind: "win", text: `+${reward} Robin Coins` });
+    }
+  }
+
+  function tryAgain() {
+    playCue("toggle");
+    start();
   }
 
   useEffect(() => {
@@ -260,14 +258,16 @@ export default function RugRunner() {
           {[0, 1, 2].map((i) => (
             <span key={i} className={`life-line ${i < lives ? "" : "life-line-empty"}`} />
           ))}
-          {shielded && <span className="nb-badge nb-badge-green" style={{ fontSize: 9, marginLeft: 6 }}>{"\u{1F6E1}\u{FE0F}"} {shieldLeft}s</span>}
+          {shielded && (
+            <span className="nb-badge nb-badge-green" style={{ fontSize: 9, marginLeft: 6, display: "inline-flex", alignItems: "center", gap: 3 }}>
+              <ShieldCheck size={11} strokeWidth={2.5} /> {shieldLeft}s
+            </span>
+          )}
         </div>
-        <span className="mono dim" style={{ fontSize: 12 }}>{crashMode ? "\u{1F4A5} crash speed!" : `score ${score}`}</span>
+        <span className="mono dim" style={{ fontSize: 12, display: "inline-flex", alignItems: "center", gap: 4 }}>
+          {crashMode ? <><Zap size={13} strokeWidth={2.5} /> crash speed!</> : `score ${score}`}
+        </span>
       </div>
-
-      <p className="dim" style={{ fontSize: 12.5, marginBottom: 8 }}>
-        Dodge the bears, catch the bulls for coins, grab the frog for a shield. Tap or press Space to jump (double-tap to double jump).
-      </p>
 
       <div className="runner-stage" onClick={playing ? jump : undefined} style={{ height: H }}>
         {(playing || phase === "over") && e?.grass.map((gx, i) => (
@@ -293,7 +293,28 @@ export default function RugRunner() {
 
         {phase === "ready" && (
           <div className="runner-overlay">
-            <div style={{ fontFamily: "var(--font-display)", fontSize: 18 }}>TAP TO RUN</div>
+            <div className="nb-panel runner-howto">
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 17, marginBottom: 10 }}>HOW TO PLAY</div>
+              <ul>
+                <li>
+                  <MousePointerClick size={22} strokeWidth={2.25} aria-hidden="true" />
+                  <span>Tap or press <strong>Space</strong> to jump. Tap twice for a double jump.</span>
+                </li>
+                <li>
+                  <img src="/bear.webp" alt="" aria-hidden="true" className="pixel" />
+                  <span>Dodge the bears — each hit costs a life.</span>
+                </li>
+                <li>
+                  <img src="/bull-sprite.png" alt="" aria-hidden="true" className="pixel" />
+                  <span>Catch the bulls for bonus points.</span>
+                </li>
+                <li>
+                  <img src="/treasure.png" alt="" aria-hidden="true" className="pixel" />
+                  <span>Grab the frog treasure for a 6-second shield.</span>
+                </li>
+              </ul>
+              <p className="dim" style={{ fontSize: 12.5, margin: "10px 0 0" }}>The longer you run, the more Robin Coins you earn.</p>
+            </div>
             <button className="nb-btn nb-btn-primary" onClick={(ev) => { ev.stopPropagation(); start(); }}>Start</button>
           </div>
         )}
@@ -303,12 +324,9 @@ export default function RugRunner() {
             <img src={loseImg} alt="you lost" className="pixel runner-lose-img" />
             <div style={{ fontFamily: "var(--font-display)", fontSize: 16 }}>SCORE {score}</div>
             <div className="dim" style={{ fontSize: 11, marginTop: -4 }}>High score {Math.max(best, score)}</div>
-            <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-              <button className="nb-btn nb-btn-yellow" onClick={(ev) => { ev.stopPropagation(); tryAgain(); }}>Try Again</button>
-              <button className="nb-btn nb-btn-primary" onClick={(ev) => { ev.stopPropagation(); saveScore(); }} disabled={saved}>
-                {saved ? "Saved" : "Save Score"}
-              </button>
-            </div>
+            <button className="nb-btn nb-btn-yellow" style={{ marginTop: 4 }} onClick={(ev) => { ev.stopPropagation(); tryAgain(); }}>
+              Try Again
+            </button>
           </div>
         )}
       </div>

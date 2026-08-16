@@ -48,7 +48,7 @@ function reducer(state, action) {
     }
 
     case "PUSH_TOAST":
-      return { ...state, toasts: [...state.toasts, { id: ++toastId, ...action.toast }] };
+      return { ...state, toasts: [...state.toasts, { id: action.id, ...action.toast }] };
 
     case "POP_TOAST":
       return { ...state, toasts: state.toasts.filter((t) => t.id !== action.id) };
@@ -74,10 +74,12 @@ export function GameProvider({ children }) {
   const claimQuest = useCallback((id) => dispatch({ type: "CLAIM_QUEST", id }), []);
 
   const pushToast = useCallback((toast) => {
-    dispatch({ type: "PUSH_TOAST", toast });
-    const id = toastId;
-    setTimeout(() => dispatch({ type: "POP_TOAST", id }), 3200);
+    const id = ++toastId;
+    dispatch({ type: "PUSH_TOAST", id, toast });
+    setTimeout(() => dispatch({ type: "POP_TOAST", id }), 5000);
   }, []);
+
+  const popToast = useCallback((id) => dispatch({ type: "POP_TOAST", id }), []);
 
   const fireConfetti = useCallback((opts) => {
     confettiRef.current?.(opts);
@@ -98,6 +100,7 @@ export function GameProvider({ children }) {
     progressQuest,
     claimQuest,
     pushToast,
+    popToast,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

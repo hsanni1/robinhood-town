@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { X } from "lucide-react";
 
 const NAV = [
   { id: "trending", label: "Town Hall" },
@@ -25,8 +26,8 @@ export default function MenuDrawer({ open, onClose, tab, onNavigate, sections = 
       <aside className={`drawer ${open ? "is-open" : ""}`} role="dialog" aria-label="Menu" aria-hidden={!open}>
         <div className="drawer-head">
           <h2 style={{ fontSize: 16 }}>Menu</h2>
-          <button className="nb-btn" onClick={onClose} aria-label="Close menu" style={{ padding: "6px 11px" }}>
-            ✕
+          <button className="nb-btn" onClick={onClose} aria-label="Close menu" style={{ padding: "6px 11px", display: "inline-flex", alignItems: "center" }}>
+            <X size={16} strokeWidth={2.75} />
           </button>
         </div>
 
