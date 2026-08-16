@@ -110,7 +110,10 @@ export async function fetchStats(slug) {
   const { value, cached: wasCached } = await cached(`rht:os:stats:${slug}`, jitteredTtl(slug, 300), async () => {
     const data = await osFetch(`/collections/${encodeURIComponent(slug)}/stats`);
     const total = data.total || {};
-    const day = (data.intervals || []).find((i) => i.interval === "one_day") || {};
+    const intervals = data.intervals || [];
+    const day = intervals.find((i) => i.interval === "one_day") || {};
+    const week = intervals.find((i) => i.interval === "seven_day") || {};
+    const month = intervals.find((i) => i.interval === "thirty_day") || {};
     return {
       slug,
       floor: total.floor_price ?? null,
@@ -120,13 +123,73 @@ export async function fetchStats(slug) {
       owners: total.num_owners ?? null,
       volume24h: day.volume ?? null,
       sales24h: day.sales ?? null,
+      // Windows a 24h spike can be measured against. On a chain this young most
+      // collections are under a week old, so 7d often equals 24h and only the
+      // 30d window (or our own snapshot) gives a usable baseline.
+      volume7d: week.volume ?? null,
+      sales7d: week.sales ?? null,
+      volume30d: month.volume ?? null,
+      sales30d: month.sales ?? null,
     };
   });
 
   // Artwork/link failures must not sink the numbers, which are the point.
   const meta = await fetchMeta(slug).catch(() => null);
   const change24h = await floorChange(slug, value.floor, wasCached);
-  return { ...value, ...(meta || {}), change24h };
+  const prevVolume = await volumeBaseline(slug, value.volume, wasCached).catch(() => null);
+  return { ...value, ...(meta || {}), change24h, prevVolume };
+}
+
+/**
+ * How far today's volume runs ahead of the collection's own recent norm.
+ *
+ * The baseline is the average day in a window *excluding* today, so a spike is
+ * not diluted by the very day being measured. The 7d window is preferred, but
+ * on the Robinhood chain most collections are younger than a week and report
+ * 7d == 24h, which yields no baseline at all - so it falls back to the 30d
+ * window, then to a volume snapshot we recorded ourselves ~24h ago.
+ *
+ * Returns null rather than a number when nothing usable exists: a collection
+ * whose first-ever sale is today has no "before" to compare against, and
+ * dividing by ~0 would report an infinite spike.
+ */
+export function volumeSpike(s, prevTotal) {
+  const day = s.volume24h;
+  if (typeof day !== "number" || !(day > 0)) return null;
+
+  const windows = [
+    [s.volume7d, 6],
+    [s.volume30d, 29],
+  ];
+  for (const [total, priorDayCount] of windows) {
+    if (typeof total !== "number") continue;
+    const priorDays = (total - day) / priorDayCount;
+    if (priorDays > 0) return +(day / priorDays).toFixed(2);
+  }
+
+  // Our own snapshot: how much lifetime volume accrued before yesterday.
+  if (typeof prevTotal === "number" && typeof s.volume === "number") {
+    const sinceSnapshot = s.volume - prevTotal;
+    if (prevTotal > 0 && sinceSnapshot > 0) return +(sinceSnapshot / prevTotal).toFixed(2);
+  }
+  return null;
+}
+
+/**
+ * Record lifetime volume once a day so a spike stays measurable even when
+ * OpenSea's own windows collapse (7d == 24h on a young collection). Returns
+ * the value from ~24h ago, or null the first time we see the collection.
+ */
+export async function volumeBaseline(slug, total, wasCached) {
+  if (typeof total !== "number") return null;
+  const key = `rht:os:vol24:${slug}`;
+  const prev = await readJson(key, null);
+  if (prev == null) {
+    // Seed only on a fresh upstream read, so cache hits cannot reset the clock.
+    if (!wasCached) await writeJson(key, total, 86400);
+    return null;
+  }
+  return typeof prev === "number" ? prev : null;
 }
 
 async function floorChange(slug, floor, wasCached) {

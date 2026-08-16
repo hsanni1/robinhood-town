@@ -6,7 +6,7 @@ import { NFT_POOL } from "../data/nftPool.js";
 import { usePagination } from "../hooks/usePagination.js";
 import { useRobinhoodTokens } from "../hooks/useRobinhoodTokens.js";
 import { useLaunchFeed } from "../hooks/useLaunchFeed.js";
-import { useNftPool, useNftStats } from "../hooks/useNftLive.js";
+import { useNftPool, useNftStats, useNftPulse } from "../hooks/useNftLive.js";
 import PriceChart from "./PriceChart.jsx";
 import AssetIcon from "./AssetIcon.jsx";
 import Pagination from "./Pagination.jsx";
@@ -33,9 +33,17 @@ function fmtFloor(n) {
   return `${n.floor < 1 ? n.floor.toFixed(4) : n.floor.toFixed(2)} ${sym}`;
 }
 
+// Spiking volume is in the collection's own currency and often well under 1.
+function fmtSpikeVol(g) {
+  const v = g.volume24h;
+  return `${v < 1 ? v.toFixed(3) : v.toFixed(1)} ${g.floorSymbol || "ETH"}`;
+}
+
 const MOVERS_PER_PAGE = 10;
 const VIRAL_PER_PAGE = 6;
 const MINTS_PER_PAGE = 6;
+const GAINERS_PER_PAGE = 6;
+const MINTING_PER_PAGE = 6;
 
 // Merge live CoinGecko data (when present) over the simulated feed.
 function useAssetView() {
@@ -92,6 +100,7 @@ export default function TrendingTicker() {
     [nftPool]
   );
   const nftStats = useNftStats(statSlugs);
+  const { gainers, minting } = useNftPulse(statSlugs);
   const { viral: viralNfts, upcoming } = useLaunchFeed(NFT_VIRAL, NFT_UPCOMING_MINTS, nftPool, nftStats);
 
   const symbols = Object.keys(market.tokens);
@@ -126,6 +135,8 @@ export default function TrendingTicker() {
   const moversPg = usePagination(movers.length, MOVERS_PER_PAGE);
   const viralPg = usePagination(viralNfts.length, VIRAL_PER_PAGE);
   const mintsPg = usePagination(upcoming.length, MINTS_PER_PAGE);
+  const gainersPg = usePagination(gainers.length, GAINERS_PER_PAGE);
+  const mintingPg = usePagination(minting.length, MINTING_PER_PAGE);
 
   useEffect(() => {
     progressQuest("scout", 1);
@@ -206,9 +217,93 @@ export default function TrendingTicker() {
 
       {/* RIGHT: Upcoming Mints (top) + Viral NFTs */}
       <div className="trending-col">
+        {/* Live mints on the Robinhood chain. Hidden when nothing is minting -
+            a padded "minting now" list would be inventing a drop. */}
+        {minting.length > 0 && (
+          <div className="nb-card" style={{ padding: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <h2 style={{ fontSize: 16, marginBottom: 4 }}>Minting Now</h2>
+              <span className="nb-badge nb-badge-green" style={{ fontSize: 10 }}>
+                <span className="live-dot" aria-hidden="true" /> {minting.length} LIVE
+              </span>
+            </div>
+            <p className="dim" style={{ fontSize: 12, marginBottom: 10 }}>
+              Robinhood-chain collections still minting out right now
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {mintingPg.paginate(minting).map((m) => (
+                <a
+                  key={m.slug}
+                  href={m.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nb-panel asset-row"
+                  style={{ padding: "8px 12px" }}
+                  title={`${m.name} - ${m.sales24h} of ${m.sales} lifetime sales happened in the last 24h`}
+                >
+                  <AssetIcon img={m.img} alt={m.name} size={34} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.name}</div>
+                    <div className="dim" style={{ fontSize: 11 }}>
+                      {m.sales24h} sales today{m.owners ? ` · ${m.owners.toLocaleString()} holders` : ""}
+                    </div>
+                  </div>
+                  <span className="mono" style={{ fontSize: 11, whiteSpace: "nowrap", textAlign: "right" }}>
+                    {fmtFloor(m)}
+                  </span>
+                  <span className="row-go dim">↗</span>
+                </a>
+              ))}
+            </div>
+            <Pagination page={mintingPg.page} totalPages={mintingPg.totalPages} onPageChange={mintingPg.setPage} label="Minting now pagination" />
+          </div>
+        )}
+
+        {/* Only rendered when something is genuinely spiking - an empty
+            "gaining volume" list is more honest than a padded one. */}
+        {gainers.length > 0 && (
+          <div className="nb-card" style={{ padding: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <h2 style={{ fontSize: 16, marginBottom: 4 }}>Gaining Volume</h2>
+              <span className="nb-badge nb-badge-green" style={{ fontSize: 10 }}>
+                <span className="live-dot" aria-hidden="true" /> {gainers.length} SPIKING
+              </span>
+            </div>
+            <p className="dim" style={{ fontSize: 12, marginBottom: 10 }}>
+              24h volume running ahead of the collection&rsquo;s own 7-day average
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {gainersPg.paginate(gainers).map((g) => (
+                <a
+                  key={g.slug}
+                  href={g.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nb-panel asset-row"
+                  style={{ padding: "8px 12px" }}
+                  title={`${g.name} - ${g.volume24h.toFixed(3)} ${g.floorSymbol || "ETH"} in 24h vs ${g.volume7d.toFixed(3)} over 7d`}
+                >
+                  <AssetIcon img={g.img} alt={g.name} size={34} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.name}</div>
+                    <div className="dim" style={{ fontSize: 11 }}>
+                      {fmtSpikeVol(g)} in 24h{g.sales24h ? ` · ${g.sales24h} sales` : ""}
+                    </div>
+                  </div>
+                  <span className="mono up" style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                    <ArrowUp size={11} strokeWidth={2.75} style={{ verticalAlign: "-1px" }} aria-hidden="true" /> {g.spike}x
+                  </span>
+                  <span className="row-go dim">↗</span>
+                </a>
+              ))}
+            </div>
+            <Pagination page={gainersPg.page} totalPages={gainersPg.totalPages} onPageChange={gainersPg.setPage} label="Gaining volume pagination" />
+          </div>
+        )}
+
         <div className="nb-card" style={{ padding: 14 }}>
           <h2 style={{ fontSize: 16, marginBottom: 4 }}>Upcoming NFT Mints</h2>
-          <p className="dim" style={{ fontSize: 12, marginBottom: 10 }}>Auto-updating launch feed - soonest first</p>
+          <p className="dim" style={{ fontSize: 12, marginBottom: 10 }}>Curated launch list - dated mints first</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {mintsPg.paginate(upcoming).map((n) => (
               <a key={n.slug} href={n.url} target="_blank" rel="noopener noreferrer" className="nb-panel asset-row" style={{ padding: "8px 12px" }} title={`View ${n.name}`}>

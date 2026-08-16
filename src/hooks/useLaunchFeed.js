@@ -2,8 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 const REVEAL_MS = 14000; // surface a new collection from the pool every 14s
 const HOUR = 3600 * 1000;
-const HYPES = ["hot", "raffle", "allowlist"];
-const PRICES = ["Free", "0.004 ETH", "0.008 ETH", "0.01 ETH", "0.015 ETH", "0.02 ETH"];
 
 function seed(str) {
   let h = 2166136261;
@@ -66,30 +64,18 @@ export function buildFeed(baseViral, baseUpcoming, pool, revealCount, start, sta
   const seen = new Set([...baseViral, ...baseUpcoming].map((n) => n.slug));
   const revealed = pool.filter((c) => !seen.has(c.slug)).slice(0, revealCount);
 
-  const newViral = [];
-  const newUpcoming = [];
-  revealed.forEach((c, i) => {
+  // Everything surfaced from the pool goes to Viral. Upcoming Mints is a
+  // hand-curated list only - a collection already listed on OpenSea is not an
+  // upcoming mint, and guessing a mint date for it would be inventing news.
+  const newViral = revealed.map((c) => {
     const r = seed(c.slug);
-    if (i % 2 === 0) {
-      // just went viral
-      newViral.push({
-        ...c,
-        isNew: true,
-        floor: +(0.003 + r * 0.05).toFixed(4),
-        change: +((r - 0.35) * 120).toFixed(1),
-        volume: +(4 + r * 45).toFixed(1),
-      });
-    } else {
-      // about to launch - imminent countdown so it leads the list
-      newUpcoming.push({
-        ...c,
-        isNew: true,
-        mintInHours: 1 + r * 8,
-        price: PRICES[Math.floor(r * PRICES.length)],
-        supply: 1000 + Math.floor(r * 9000),
-        hype: HYPES[Math.floor(r * HYPES.length)],
-      });
-    }
+    return {
+      ...c,
+      isNew: true,
+      floor: +(0.003 + r * 0.05).toFixed(4),
+      change: +((r - 0.35) * 120).toFixed(1),
+      volume: +(4 + r * 45).toFixed(1),
+    };
   });
 
   // Viral: real floors first (highest), then anything still simulated.
@@ -97,12 +83,12 @@ export function buildFeed(baseViral, baseUpcoming, pool, revealCount, start, sta
     .map((n) => withStats(n, stats))
     .sort((a, b) => b.live - a.live || b.floor - a.floor || b.volume - a.volume);
 
-  // Upcoming: dated mints first (soonest lead), then projects that have
-  // announced Robinhood but no date yet, liveliest first so the ones already
-  // trading on OpenSea surface above the ones with nothing to show.
-  // Mint dates are game flavor - OpenSea publishes none - but floor, image and
-  // link are overlaid for real where the collection already trades.
-  const upcoming = [...baseUpcoming, ...newUpcoming]
+  // Upcoming: the curated list, nothing auto-added. Dated mints first (soonest
+  // lead), then projects that have announced Robinhood but no date yet,
+  // liveliest first so the ones already trading surface above the ones with
+  // nothing to show. Mint dates are game flavor - OpenSea publishes none - but
+  // floor, image and link are overlaid for real where the collection trades.
+  const upcoming = baseUpcoming
     .map((n) => ({ ...withStats(n, stats), mintAt: start + n.mintInHours * HOUR }))
     .sort((a, b) => {
       const at = a.tba ? 1 : 0;

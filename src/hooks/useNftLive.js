@@ -43,6 +43,48 @@ export function useNftPool(fallback) {
   return { pool, live };
 }
 
+const EMPTY_PULSE = { gainers: [], minting: [] };
+
+/**
+ * Chain pulse: collections whose 24h volume has jumped well above their own
+ * recent average, and collections still in active distribution (a live mint).
+ * The scan and the thresholds live server-side; this just polls the result.
+ * Both come from one request because the server derives them from one scan.
+ */
+export function useNftPulse(watchSlugs = []) {
+  const [pulse, setPulse] = useState(EMPTY_PULSE);
+  // The chain list skews brand-new; established collections are the only ones
+  // with enough history to spike, so they are passed in explicitly.
+  const key = useMemo(() => watchSlugs.slice(0, STATS_BATCH).join(","), [watchSlugs]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const url = key ? `${API}/nft/pulse?slugs=${encodeURIComponent(key)}` : `${API}/nft/pulse`;
+        const res = await fetch(url, { headers: { accept: "application/json" } });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (cancelled) return;
+        setPulse({
+          gainers: Array.isArray(data.gainers) ? data.gainers : [],
+          minting: Array.isArray(data.minting) ? data.minting : [],
+        });
+      } catch {
+        /* keep last good lists */
+      }
+    }
+    load();
+    const id = setInterval(load, POOL_REFRESH_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [key]);
+
+  return pulse;
+}
+
 /**
  * Real floor/volume/sales for the given slugs, keyed by slug. Capped and
  * debounced because each slug is an upstream call behind the cache; slugs
