@@ -100,7 +100,41 @@ export const NFT_VIRAL = [
 //      overlays its real floor, artwork and link.
 //
 // The list is sorted dated-first, then TBA rows by floor.
+/**
+ * Projects that have announced Robinhood and published a contact. This is the
+ * single source for both the Upcoming rows and the Contacts tab, so the two
+ * cannot drift apart.
+ *
+ * `url` points at OpenSea only where the collection is verified to be on the
+ * Robinhood chain. Slug-guessing turned up same-named collections on ethereum,
+ * polygon and abstract - linking a project to another chain's collection is
+ * worse than linking to its X account, so everything unverified links to X.
+ *
+ * `discord` absent means the project directs people to X DMs.
+ */
+export const RH_PROJECTS = [
+  { name: "Renie", slug: "renie", img: "", url: opensea("renie"), x: "renie_rh", discord: "abdulmub" },
+  { name: "rektguy", slug: "rektguy-rh", img: "", url: "https://x.com/rektguy", x: "rektguy", discord: "lexiet" },
+  { name: "Doll Club", slug: "dollclub-rh", img: "", url: "https://x.com/dollclubnft", x: "dollclubnft" },
+  { name: "UnderTheHood", slug: "underthehood-rh", img: "", url: "https://x.com/UnderTheHood000", x: "UnderTheHood000" },
+  { name: "BlackRH", slug: "blackrh", img: "", url: "https://x.com/BlackRH__", x: "BlackRH__", discord: "alifa.eth" },
+  { name: "Glorp", slug: "glorp-rh", img: "", url: "https://x.com/glorpRBH", x: "glorpRBH" },
+  { name: "Kiyoo", slug: "kiyoo-rh", img: "", url: "https://x.com/Kiyoo_nft", x: "Kiyoo_nft", discord: "ganex_00" },
+  { name: "Mooneor", slug: "mooneor", img: "", url: "https://x.com/Mooneorfun", x: "Mooneorfun", discord: "lambada_eth" },
+  { name: "Broke Dealers", slug: "brokedealers-rh", img: "", url: "https://x.com/brokedealershq", x: "brokedealershq", discord: "abdulmub" },
+];
+
 export const NFT_UPCOMING_MINTS = [
+  // The announced-with-a-contact set, rendered the same way as the other TBA
+  // rows: no invented date, price or supply.
+  ...RH_PROJECTS.map((p) => ({
+    ...p,
+    tba: true,
+    mintInHours: 1,
+    price: "TBA",
+    supply: null,
+    manager: { name: p.name, role: "Official", x: p.x, discord: p.discord },
+  })),
   // Announced for Robinhood but pre-reveal: no OpenSea collection, no mint date,
   // price or supply published yet (the account has posted nothing). `tba` makes
   // the row say so instead of inventing a countdown for a real project - drop

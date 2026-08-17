@@ -1,82 +1,74 @@
 import { useState } from "react";
-import { Lock } from "lucide-react";
-import { NFT_UPCOMING_MINTS } from "../data/assets.js";
+import { Check, Copy } from "lucide-react";
+import { RH_PROJECTS } from "../data/assets.js";
+import AssetIcon from "./AssetIcon.jsx";
 
-// Sort by soonest mint so the list mirrors the Upcoming feed order.
-const CONTACTS = [...NFT_UPCOMING_MINTS].sort((a, b) => a.mintInHours - b.mintInHours);
-
-// Collab manager contacts stay behind an auth wall so managers don't get
-// spammed with DMs. Flip this once real sign-in exists.
-const AUTH_READY = false;
-
-function AuthWall() {
-  return (
-    <div className="nb-card" style={{ padding: 28, textAlign: "center" }}>
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-        <Lock size={40} strokeWidth={2} aria-hidden="true" />
-      </div>
-      <h2 style={{ fontSize: 18 }}>Members Only</h2>
-      <p className="dim" style={{ fontSize: 13, marginTop: 6, maxWidth: 360, marginInline: "auto" }}>
-        Collab manager contacts are locked to verified members. Sign-in is coming soon — this keeps managers safe from spam DMs.
-      </p>
-    </div>
-  );
+/** "Discord · handle" when the project gave one, otherwise it's X DMs. */
+function contactLabel(p) {
+  return p.discord ? `Discord · ${p.discord}` : "X DMs";
 }
 
 export default function ContactList() {
-  const [open, setOpen] = useState(null);
+  const [copied, setCopied] = useState(null);
 
-  if (!AUTH_READY) return <AuthWall />;
+  function copy(handle) {
+    navigator.clipboard?.writeText(handle).then(
+      () => {
+        setCopied(handle);
+        setTimeout(() => setCopied((c) => (c === handle ? null : c)), 1600);
+      },
+      () => {} // clipboard blocked - the handle is still on screen to read
+    );
+  }
 
   return (
     <div className="nb-card" style={{ padding: 14 }}>
       <h2 style={{ fontSize: 16, marginBottom: 4 }}>Contacts</h2>
       <p className="dim" style={{ fontSize: 12, marginBottom: 12 }}>
-        Every upcoming mint. Tap a collection to reach its collab manager.
+        Reach a project directly. Discord values are usernames to DM, not server invites.
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {CONTACTS.map((c) => {
-          const isOpen = open === c.slug;
-          const m = c.manager;
-          return (
-            <div key={c.slug} className="nb-panel" style={{ padding: 0, overflow: "hidden" }}>
-              <button
-                className="contact-row"
-                aria-expanded={isOpen}
-                onClick={() => setOpen(isOpen ? null : c.slug)}
-              >
-                <span className="contact-thumb">
-                  <img src={c.img} alt={c.name} loading="lazy" />
-                </span>
-                <span style={{ flex: 1, textAlign: "left" }}>
-                  <span style={{ fontFamily: "var(--font-display)", fontSize: 13, display: "block" }}>{c.name}</span>
-                  <span className="dim" style={{ fontSize: 11 }}>{m ? `${m.name} · ${m.role}` : "Team"}</span>
-                </span>
-                <span className="contact-caret" aria-hidden="true">{isOpen ? "–" : "+"}</span>
-              </button>
+        {RH_PROJECTS.map((p) => (
+          <div key={p.slug} className="nb-panel contact-card">
+            <AssetIcon img={p.img} alt={p.name} size={38} />
 
-              {isOpen && m && (
-                <div className="contact-detail">
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    <a className="nb-btn nb-btn-block contact-link" href={`https://x.com/${m.x}`} target="_blank" rel="noopener noreferrer">
-                      X / Twitter · @{m.x}
-                    </a>
-                    {/* Not every project publishes a Discord - link only what exists. */}
-                    {m.discord && (
-                      <a className="nb-btn nb-btn-block contact-link" href={`https://discord.gg/${m.discord}`} target="_blank" rel="noopener noreferrer">
-                        Discord · discord.gg/{m.discord}
-                      </a>
-                    )}
-                    <a className="nb-btn nb-btn-block contact-link" href={c.url} target="_blank" rel="noopener noreferrer">
-                      {c.url.includes("opensea.io") ? "View collection on OpenSea" : "Visit project"}
-                    </a>
-                  </div>
-                </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="contact-name nft-name">{p.name}</div>
+              <div className="dim contact-meta">{contactLabel(p)}</div>
+            </div>
+
+            <div className="contact-actions">
+              <a
+                className="nb-btn contact-btn"
+                href={`https://x.com/${p.x}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`Open @${p.x} on X`}
+              >
+                X
+              </a>
+              {/* A Discord username cannot be linked - it is copied and pasted
+                  into Discord's search, so offer the copy instead of a dead
+                  discord.gg URL. */}
+              {p.discord && (
+                <button
+                  type="button"
+                  className="nb-btn contact-btn"
+                  onClick={() => copy(p.discord)}
+                  title={`Copy Discord username ${p.discord}`}
+                  aria-label={`Copy Discord username ${p.discord}`}
+                >
+                  {copied === p.discord ? (
+                    <Check size={13} strokeWidth={2.5} aria-hidden="true" />
+                  ) : (
+                    <Copy size={13} strokeWidth={2.5} aria-hidden="true" />
+                  )}
+                </button>
               )}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );

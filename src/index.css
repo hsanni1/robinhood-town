@@ -1115,3 +1115,50 @@ button {
   text-decoration: none;
   font-size: 12px;
 }
+
+.contact-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.contact-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+}
+
+/* Deliberately a step below the project name. */
+.contact-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contact-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.contact-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .contact-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

@@ -90,10 +90,14 @@ export default function TrendingTicker() {
   // Curated collections are real collections, so they get real stats first -
   // they are what's actually on screen before the reveal timer surfaces any
   // pool entries. Pool slugs fill whatever budget is left.
+  // Only ask OpenSea about slugs that are actually OpenSea collections. Rows
+  // that link to X have a local placeholder slug, and querying those would be
+  // a guaranteed 404 on every refresh.
+  const onOpenSea = (n) => n.url?.includes("opensea.io");
   const statSlugs = useMemo(
     () => [
-      ...NFT_VIRAL.map((n) => n.slug),
-      ...NFT_UPCOMING_MINTS.map((n) => n.slug),
+      ...NFT_VIRAL.filter(onOpenSea).map((n) => n.slug),
+      ...NFT_UPCOMING_MINTS.filter(onOpenSea).map((n) => n.slug),
       ...nftPool.map((c) => c.slug),
     ],
     [nftPool]
