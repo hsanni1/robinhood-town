@@ -112,16 +112,19 @@ export const NFT_VIRAL = [
  *
  * `discord` absent means the project directs people to X DMs.
  */
+// Names and avatars are each project's own, read from its X profile - not
+// inferred from the handle (which had "Kiyoo_nft" as Kiyoo when it is KIYO,
+// and "BlackRH__" as BlackRH when it is Black).
 export const RH_PROJECTS = [
-  { name: "Renie", slug: "renie", img: "", url: opensea("renie"), x: "renie_rh", discord: "abdulmub" },
-  { name: "rektguy", slug: "rektguy-rh", img: "", url: "https://x.com/rektguy", x: "rektguy", discord: "lexiet" },
-  { name: "Doll Club", slug: "dollclub-rh", img: "", url: "https://x.com/dollclubnft", x: "dollclubnft" },
-  { name: "UnderTheHood", slug: "underthehood-rh", img: "", url: "https://x.com/UnderTheHood000", x: "UnderTheHood000" },
-  { name: "BlackRH", slug: "blackrh", img: "", url: "https://x.com/BlackRH__", x: "BlackRH__", discord: "alifa.eth" },
-  { name: "Glorp", slug: "glorp-rh", img: "", url: "https://x.com/glorpRBH", x: "glorpRBH" },
-  { name: "Kiyoo", slug: "kiyoo-rh", img: "", url: "https://x.com/Kiyoo_nft", x: "Kiyoo_nft", discord: "ganex_00" },
-  { name: "Mooneor", slug: "mooneor", img: "", url: "https://x.com/Mooneorfun", x: "Mooneorfun", discord: "lambada_eth" },
-  { name: "Broke Dealers", slug: "brokedealers-rh", img: "", url: "https://x.com/brokedealershq", x: "brokedealershq", discord: "abdulmub" },
+  { name: "Renie", slug: "renie", img: "/nft/x-renierh.jpg", url: opensea("renie"), x: "renie_rh", discord: "abdulmub" },
+  { name: "Rektguy", slug: "rektguy-rh", img: "/nft/x-rektguy.jpg", url: "https://x.com/rektguy", x: "rektguy", discord: "lexiet" },
+  { name: "The Doll Club", slug: "dollclub-rh", img: "/nft/x-dollclubnft.jpg", url: "https://x.com/dollclubnft", x: "dollclubnft" },
+  { name: "Under The Hood", slug: "underthehood-rh", img: "/nft/x-underthehood000.jpg", url: "https://x.com/UnderTheHood000", x: "UnderTheHood000" },
+  { name: "Black", slug: "blackrh", img: "/nft/x-blackrh.jpg", url: "https://x.com/BlackRH__", x: "BlackRH__", discord: "alifa.eth" },
+  { name: "Glorp", slug: "glorp-rh", img: "/nft/x-glorprbh.jpg", url: "https://x.com/glorpRBH", x: "glorpRBH" },
+  { name: "KIYO", slug: "kiyoo-rh", img: "/nft/x-kiyoonft.jpg", url: "https://x.com/Kiyoo_nft", x: "Kiyoo_nft", discord: "ganex_00" },
+  { name: "Mooneor", slug: "mooneor", img: "/nft/x-mooneorfun.jpg", url: "https://x.com/Mooneorfun", x: "Mooneorfun", discord: "lambada_eth" },
+  { name: "Broke Dealers", slug: "brokedealers-rh", img: "/nft/x-brokedealershq.jpg", url: "https://x.com/brokedealershq", x: "brokedealershq", discord: "abdulmub" },
 ];
 
 export const NFT_UPCOMING_MINTS = [
