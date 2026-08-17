@@ -26,7 +26,13 @@ export default function AssetIcon({ icon, img, alt = "", color = "var(--surface)
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
       ) : (
-        icon
+        // Projects with no artwork yet fall back to their initial rather than
+        // an empty circle, which reads as a broken image.
+        icon || (
+          <span style={{ fontFamily: "var(--font-display)", fontSize: size * 0.42, lineHeight: 1 }}>
+            {(alt.trim()[0] || "?").toUpperCase()}
+          </span>
+        )
       )}
     </span>
   );

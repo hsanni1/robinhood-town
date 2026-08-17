@@ -84,12 +84,17 @@ export async function fetchCollections(limit = 100) {
  * one upstream call once warm.
  */
 export async function fetchMeta(slug) {
-  const { value } = await cached(`rht:os:meta:${slug}`, 21600, async () => {
+  // Key is versioned: adding a field to a cached shape would otherwise serve
+  // 6h-old entries that lack it.
+  const { value } = await cached(`rht:os:meta2:${slug}`, 21600, async () => {
     const c = await osFetch(`/collections/${encodeURIComponent(slug)}`);
     return {
       name: c.name || slug,
       img: c.image_url || "",
       url: c.opensea_url || `https://opensea.io/collection/${slug}`,
+      // Slug guesses can land on a same-named collection from another chain,
+      // so callers need this to confirm they matched the right one.
+      chains: [...new Set((c.contracts || []).map((x) => x.chain).filter(Boolean))],
     };
   });
   return value;

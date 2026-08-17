@@ -8,7 +8,8 @@
     "server": "node server/index.mjs",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prebuild": "node scripts/build-nft-catalog.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.31.0",
