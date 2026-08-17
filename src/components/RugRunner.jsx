@@ -42,6 +42,7 @@ export default function RugRunner() {
   const crashMode = market.event?.type === "crash";
 
   const eng = useRef(null);
+  const stageRef = useRef(null);
   const rafRef = useRef(null);
   const [, force] = useState(0);
   const [phase, setPhase] = useState("ready");
@@ -168,7 +169,12 @@ export default function RugRunner() {
         e.entities.push({
           id: e.nextId++,
           type,
-          x: 700,
+          // Spawn just off the right edge of the actual stage, not at a fixed
+          // 700px. On a phone the stage is ~330px wide, so a hardcoded spawn
+          // put obstacles far outside the visible area - same travel distance,
+          // but the player only saw them for the last third of it. Scaling to
+          // the measured width gives every screen the same reaction time.
+          x: (stageRef.current?.clientWidth || 700) + 40,
           float: type === "bear" ? 0 : 12 + Math.random() * 118,
         });
       }
@@ -269,7 +275,7 @@ export default function RugRunner() {
         </span>
       </div>
 
-      <div className="runner-stage" onClick={playing ? jump : undefined} style={{ height: H }}>
+      <div ref={stageRef} className="runner-stage" onClick={playing ? jump : undefined} style={{ height: H }}>
         {(playing || phase === "over") && e?.grass.map((gx, i) => (
           <img key={"g" + i} src="/grass.png" alt="" aria-hidden="true" className="pixel"
             style={{ position: "absolute", left: gx, bottom: GROUND - 8, width: 44, height: 32, objectFit: "contain", opacity: 0.9 }} />

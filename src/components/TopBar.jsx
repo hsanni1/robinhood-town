@@ -6,19 +6,10 @@ export default function TopBar({ night, onToggleTheme, themeManual, onOpenMenu, 
   const now = new Date();
   const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+  // Layout lives in .topbar so the small-screen media query can tighten it -
+  // inline styles would outrank the breakpoint.
   return (
-    <div
-      className="nb-card"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: "10px 14px",
-        margin: 12,
-        marginBottom: 0,
-        flexWrap: "wrap",
-      }}
-    >
+    <div className="nb-card topbar">
       <img
         src="/logo-wordmark.png"
         alt="Robinhood Town"

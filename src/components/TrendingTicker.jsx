@@ -176,18 +176,18 @@ export default function TrendingTicker() {
               return (
                 <a key={r.key} href={r.token.tradeUrl} target="_blank" rel="noopener noreferrer" className="asset-row" title={`View ${r.token.symbol} market data`}>
                   <AssetIcon img={r.token.img} alt={r.token.name} color={r.token.color} />
-                  <div style={{ width: 66 }}>
+                  <div className="mover-sym">
                     <div style={{ fontFamily: "var(--font-display)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
                       {r.token.symbol}
                       {r.isNew ? <span className="tag-new">NEW</span> : r.live && <span className="live-dot" title="Live price" />}
                     </div>
                     <div className="dim" style={{ fontSize: 10, textTransform: "uppercase" }}>{r.token.kind}</div>
                   </div>
-                  <div style={{ width: 84, fontFamily: "var(--font-mono)", fontSize: 12 }}>${fmtPrice(r.price)}</div>
-                  <div style={{ flex: 1, height: 36, minWidth: 54 }}>
+                  <div className="mover-price mono">${fmtPrice(r.price)}</div>
+                  <div className="mover-chart">
                     <PriceChart data={r.series} up={up} />
                   </div>
-                  <div className={`mono ${up ? "up" : "down"}`} style={{ width: 60, textAlign: "right", fontSize: 12 }}>
+                  <div className={`mono mover-chg ${up ? "up" : "down"}`}>
                     <Delta up={up} /> {Math.abs(r.change24h).toFixed(1)}%
                   </div>
                   <span className="row-go dim" style={{ display: "inline-flex" }}><ArrowUpRight size={13} strokeWidth={2.5} aria-hidden="true" /></span>
@@ -264,9 +264,9 @@ export default function TrendingTicker() {
             {mintsPg.paginate(upcoming).map((n) => (
               <a key={n.slug} href={n.url} target="_blank" rel="noopener noreferrer" className="nb-panel asset-row" style={{ padding: "8px 12px" }} title={`View ${n.name}`}>
                 <AssetIcon img={n.img} icon={n.icon} alt={n.name} size={34} />
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
-                    {n.name}
+                    <span className="nft-name">{n.name}</span>
                     {n.isNew && <span className="tag-new">NEW</span>}
                   </div>
                   <div className="dim" style={{ fontSize: 11 }}>
@@ -305,8 +305,8 @@ export default function TrendingTicker() {
               return (
                 <a key={n.slug} href={n.url} target="_blank" rel="noopener noreferrer" className="nb-panel asset-row" style={{ padding: "8px 12px" }} title={`View ${n.name} on OpenSea`}>
                   <AssetIcon img={n.img} alt={n.name} size={34} />
-                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, display: "flex", alignItems: "center", gap: 6 }}>
-                    {n.name}
+                  <span style={{ fontSize: 13, fontWeight: 600, flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}>
+                    <span className="nft-name">{n.name}</span>
                     {n.isNew && <span className="tag-new">NEW</span>}
                   </span>
                   <span className="mono dim vol-cell" style={{ fontSize: 11 }}>{fmtVolume(n)}</span>

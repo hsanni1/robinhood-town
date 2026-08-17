@@ -259,6 +259,8 @@ button {
   min-height: 100dvh;
   max-width: 1080px;
   margin: 0 auto;
+  /* Safety net: one mis-sized child must not sidescroll the whole page. */
+  overflow-x: hidden;
 }
 
 /* ---------- trending two-column layout ---------- */
@@ -273,6 +275,16 @@ button {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-width: 0;
+}
+
+/* Grid and flex children default to min-width:auto, so they refuse to shrink
+   below their content and blow the track out past a narrow viewport. Letting
+   them shrink is what makes the inner ellipsis and column-hiding actually
+   take effect. */
+.trending-grid > *,
+.trending-col > * {
+  min-width: 0;
 }
 
 @media (min-width: 800px) {
@@ -509,6 +521,60 @@ button {
   }
 }
 
+/* ---------- Top Movers columns ----------
+   These were fixed inline widths that summed past 420px, so the row overflowed
+   on every phone. They shrink instead, and the sparkline - the one column that
+   is decorative rather than a number - drops out last. */
+.mover-sym {
+  width: 66px;
+  min-width: 0;
+}
+
+.mover-price {
+  width: 84px;
+  font-size: 12px;
+}
+
+.mover-chart {
+  flex: 1;
+  height: 36px;
+  min-width: 54px;
+}
+
+.mover-chg {
+  width: 60px;
+  text-align: right;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+@media (max-width: 620px) {
+  .mover-sym {
+    width: 54px;
+  }
+  .mover-price {
+    width: 70px;
+  }
+  .mover-chart {
+    min-width: 36px;
+  }
+  .mover-chg {
+    width: 52px;
+  }
+}
+
+@media (max-width: 400px) {
+  .mover-chart {
+    display: none;
+  }
+  .mover-sym {
+    flex: 1;
+  }
+  .asset-row {
+    gap: 8px;
+  }
+}
+
 /* ---------- pagination ---------- */
 
 .sr-only {
@@ -595,6 +661,63 @@ button {
   .pagination-word {
     display: none;
   }
+}
+
+/* Pagination is the densest tap target in the app; on touch it needs to clear
+   the ~44px guideline rather than stay at the 32px desktop size. */
+@media (hover: none) and (pointer: coarse) {
+  .pagination-link {
+    min-width: 40px;
+    height: 40px;
+  }
+  .pagination-ellipsis {
+    min-width: 28px;
+    height: 40px;
+  }
+  .nb-nav-item {
+    min-height: 44px;
+  }
+  .contact-row {
+    min-height: 48px;
+  }
+  /* Hover-reveal does not exist on touch - show the affordance permanently. */
+  .row-go {
+    opacity: 0.5;
+  }
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 14px;
+  margin: 12px 12px 0;
+}
+
+/* ---------- small phones ---------- */
+@media (max-width: 480px) {
+  .app-main {
+    padding: 10px 10px 24px;
+    gap: 10px;
+  }
+  .topbar {
+    margin: 10px 10px 0;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  .mkt-grid {
+    grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+    gap: 10px;
+  }
+}
+
+/* Long collection names must ellipsize rather than force the row wider. */
+.nft-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ---------- hamburger toggle ---------- */
