@@ -1116,6 +1116,129 @@ button {
   font-size: 12px;
 }
 
+/* ---------- search field ---------- */
+.searchfield {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchfield-icon {
+  position: absolute;
+  left: 10px;
+  display: inline-flex;
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+.searchfield-input {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 9px 34px 9px 32px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.searchfield-input:focus {
+  outline: none;
+  box-shadow: 2px 2px 0 0 var(--ink);
+}
+
+/* The UA clear button cannot be styled and would sit beside ours. */
+.searchfield-input::-webkit-search-cancel-button,
+.searchfield-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.searchfield-clear {
+  position: absolute;
+  right: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.searchfield-clear:hover {
+  background: var(--rh-green);
+}
+
+.searchfield-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--surface);
+  border: var(--line) solid var(--ink);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.searchfield-menu-head {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 4px 8px 6px;
+}
+
+.searchfield-menu-item {
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 8px;
+  cursor: pointer;
+}
+
+.searchfield-menu-item:hover {
+  background: color-mix(in srgb, var(--rh-green) 18%, transparent);
+}
+
+.searchfield-menu-clear {
+  font-size: 12px;
+  color: var(--text-dim);
+  border-top: 2px solid var(--ink);
+  border-radius: 0 0 6px 6px;
+  margin-top: 4px;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .searchfield-input {
+    font-size: 16px; /* under 16px iOS zooms the page on focus */
+    padding-block: 11px;
+  }
+  .searchfield-clear {
+    width: 28px;
+    height: 28px;
+    right: 6px;
+  }
+  .searchfield-menu-item {
+    padding: 11px 8px;
+  }
+}
+
 .contact-card {
   display: flex;
   align-items: center;

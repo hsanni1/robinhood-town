@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { RH_PROJECTS } from "../data/assets.js";
 import AssetIcon from "./AssetIcon.jsx";
+import SearchField from "./SearchField.jsx";
 
 /** "Discord · handle" when the project gave one, otherwise it's X DMs. */
 function contactLabel(p) {
@@ -10,6 +11,17 @@ function contactLabel(p) {
 
 export default function ContactList() {
   const [copied, setCopied] = useState(null);
+  const [query, setQuery] = useState("");
+
+  // Match the project name, its X handle and its Discord handle - someone who
+  // only remembers "abdulmub" should still find the row.
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return RH_PROJECTS;
+    return RH_PROJECTS.filter((p) =>
+      [p.name, p.x, p.discord].filter(Boolean).some((v) => v.toLowerCase().includes(q))
+    );
+  }, [query]);
 
   function copy(handle) {
     navigator.clipboard?.writeText(handle).then(
@@ -28,8 +40,22 @@ export default function ContactList() {
         Reach a project directly. Discord values are usernames to DM, not server invites.
       </p>
 
+      <div style={{ marginBottom: 12 }}>
+        <SearchField
+          value={query}
+          onChange={setQuery}
+          placeholder="Search projects..."
+          label="Search contacts"
+          recentsKey="rht-contact-searches"
+        />
+      </div>
+
+      {results.length === 0 && (
+        <p className="dim" style={{ fontSize: 13 }}>No projects match &ldquo;{query.trim()}&rdquo;.</p>
+      )}
+
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {RH_PROJECTS.map((p) => (
+        {results.map((p) => (
           <div key={p.slug} className="nb-panel contact-card">
             <AssetIcon img={p.img} alt={p.name} size={38} />
 
